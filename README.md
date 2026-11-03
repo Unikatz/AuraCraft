@@ -3,12 +3,16 @@
 A 3D block-building game made from a 10-year-old's game-design sheet. It runs in any modern browser on a computer, tablet or phone.
 
 ## What's in it
-- Three worlds: Grass World, Lava World and Food World
-- 11 custom blocks (glass doors, glow rock, lamps, chairs, bookshelves, TNT, diamonds and more) and 4 crafting recipes
+- Seven worlds: Grass, Snow, Desert (with pyramids), Lava, Food, Dark Art (with a wizard tower) and an Amusement Park (big wheel, roller coaster, carousel, bouncy castle)
+- A ready-built village in every world, with villagers who walk around and sell things (Farmer, Builder, Toy Maker, Chef, Wizard)
+- Animals: sheep, cows, pigs, rabbits, chickens, pandas, penguins and camels
+- Fizzlers: spiky purple monsters that burst like TNT when you hit them
+- Beds (sleep at night for +25 aura) and Bounce Pads
+- Lots of custom blocks (glass doors, glow rock, lamps, chairs, bookshelves, TNT, diamonds, neon, crystals and more) and 4 crafting recipes
 - Doggy and Mew, pets that turn into bodyguards when zombies get close
 - Zombies at night that can't get into a house with a roof
 - Hidden treasure, a coin shop, aura farming with anime effects, and the 6 7 move
-- A 19-step quick guide, including a step-by-step house build with pictures
+- A 20-step quick guide, including a step-by-step house build with pictures
 - Map, home beacon, go-home button, torch, and wall climbing so you never get stuck
 
 ## Controls (computer)
