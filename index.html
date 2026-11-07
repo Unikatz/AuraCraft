@@ -266,7 +266,7 @@ function vnoise(x,y,z,s){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z
 function fbm2(x,z,s){let a=0,amp=.5,f=1,n=0;for(let o=0;o<4;o++){a+=vnoise(x*f,.5,z*f,s+o*17)*amp;n+=amp;amp*=.5;f*=2;}return a/n;}
 
 // ================= blocks
-const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WOOD:5,LOG:6,LEAVES:7,CONCRETE:8,GLASS:9,GLASS_OPEN:10,WATER:11,GLOW:12,LAMP:13,SHELF:14,CHAIR_R:15,CHAIR_B:16,CHAIR_Y:17,DIA_ORE:18,DIAMOND:19,TNT:20,STRONG_GLASS:21,LAMP_TABLE:22,DIA_CHAIR:23,WARM_WATER:24,CLEAN_WATER:25,BEDROCK:26,TREASURE:27,BASALT:28,LAVA:29,SCORCH:30,CAKE:31,SPONGE:32,CHOCO:33,COOKIE:34,CANDY:35,JELLY:36,MINI_TNT:37,MILK:38,SNOW:39,ICE:40,PINE:41,SANDSTONE:42,CACTUS:43,DARKSTONE:44,DARKGRASS:45,CRYSTAL:46,RUNE:47,NEON_P:48,NEON_C:49,NEON_Y:50,BRICK:51,PATH:52,BED:53,BOUNCE:54,GOLD:55,RAINBOW:56,RAIL:57,ART:58,HAY:59,AWNING:60,LANTERN:61};
+const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WOOD:5,LOG:6,LEAVES:7,CONCRETE:8,GLASS:9,GLASS_OPEN:10,WATER:11,GLOW:12,LAMP:13,SHELF:14,CHAIR_R:15,CHAIR_B:16,CHAIR_Y:17,DIA_ORE:18,DIAMOND:19,TNT:20,STRONG_GLASS:21,LAMP_TABLE:22,DIA_CHAIR:23,WARM_WATER:24,CLEAN_WATER:25,BEDROCK:26,TREASURE:27,BASALT:28,LAVA:29,SCORCH:30,CAKE:31,SPONGE:32,CHOCO:33,COOKIE:34,CANDY:35,JELLY:36,MINI_TNT:37,MILK:38,SNOW:39,ICE:40,PINE:41,SANDSTONE:42,CACTUS:43,DARKSTONE:44,DARKGRASS:45,CRYSTAL:46,RUNE:47,NEON_P:48,NEON_C:49,NEON_Y:50,BRICK:51,PATH:52,BED:53,BOUNCE:54,GOLD:55,RAINBOW:56,RAIL:57,ART:58,HAY:59,AWNING:60,LANTERN:61,TABLE:62,PET_HOUSE:63};
 const DEF=[];
 function def(id,o){DEF[id]=Object.assign({solid:true,opaque:true,fluid:false,trans:false,glow:0,lamp:0,shape:null,free:false,unlock:false,noplace:false,target:true,tip:''},o);}
 def(B.AIR,{name:'Air',solid:false,opaque:false,target:false,t:['dirt']});
@@ -331,10 +331,12 @@ def(B.ART,{name:'Art Tile',t:['art'],glow:4,free:true,tip:'Swirly glowing art'})
 def(B.HAY,{name:'Straw Bundle',t:['hay_top','hay_side','hay_top'],free:true});
 def(B.AWNING,{name:'Striped Cloth',t:['awning'],free:true});
 def(B.LANTERN,{name:'Smile Lantern',t:['lantern_top','lantern_face','lantern_top'],glow:11,free:true,tip:'A smiling paper lantern'});
+def(B.TABLE,{name:'Wood Table',t:['planks'],opaque:false,shape:'tbl',free:true,tip:'A wooden table. Put chairs next to it'});
+def(B.PET_HOUSE,{name:'Pet House',t:['planks'],opaque:false,shape:'pet',free:true,tip:'A wooden pet house that sits on 4 blocks of floor (2 x 2). Your pet can sleep here'});
 const NB=DEF.length, SOLID=new Uint8Array(NB), OPAQ=new Uint8Array(NB), FLUID=new Uint8Array(NB);
 for(let i=0;i<NB;i++){SOLID[i]=DEF[i].solid?1:0;OPAQ[i]=DEF[i].opaque?1:0;FLUID[i]=DEF[i].fluid?1:0;}
 const LIMITED=new Set([B.DIAMOND,B.TNT,B.MINI_TNT,B.DIA_CHAIR,B.WARM_WATER,B.CLEAN_WATER]);
-const BAG_ORDER=[B.GRASS,B.DIRT,B.STONE,B.SAND,B.WOOD,B.LOG,B.LEAVES,B.CONCRETE,B.BRICK,B.PATH,B.GLASS,B.STRONG_GLASS,B.WATER,B.WARM_WATER,B.CLEAN_WATER,B.GLOW,B.LAMP,B.LAMP_TABLE,B.BED,B.SHELF,B.CHAIR_R,B.CHAIR_B,B.CHAIR_Y,B.DIA_CHAIR,B.DIAMOND,B.TNT,B.MINI_TNT,B.BOUNCE,B.GOLD,B.RAINBOW,B.NEON_P,B.NEON_C,B.NEON_Y,B.ART,B.CRYSTAL,B.RUNE,B.LANTERN,B.SNOW,B.ICE,B.PINE,B.SANDSTONE,B.CACTUS,B.HAY,B.AWNING,B.RAIL,B.DARKSTONE,B.DARKGRASS,B.BASALT,B.SCORCH,B.CAKE,B.SPONGE,B.CHOCO,B.COOKIE,B.CANDY,B.JELLY];
+const BAG_ORDER=[B.GRASS,B.DIRT,B.STONE,B.SAND,B.WOOD,B.LOG,B.LEAVES,B.CONCRETE,B.BRICK,B.PATH,B.GLASS,B.STRONG_GLASS,B.WATER,B.WARM_WATER,B.CLEAN_WATER,B.GLOW,B.LAMP,B.LAMP_TABLE,B.BED,B.TABLE,B.PET_HOUSE,B.SHELF,B.CHAIR_R,B.CHAIR_B,B.CHAIR_Y,B.DIA_CHAIR,B.DIAMOND,B.TNT,B.MINI_TNT,B.BOUNCE,B.GOLD,B.RAINBOW,B.NEON_P,B.NEON_C,B.NEON_Y,B.ART,B.CRYSTAL,B.RUNE,B.LANTERN,B.SNOW,B.ICE,B.PINE,B.SANDSTONE,B.CACTUS,B.HAY,B.AWNING,B.RAIL,B.DARKSTONE,B.DARKGRASS,B.BASALT,B.SCORCH,B.CAKE,B.SPONGE,B.CHOCO,B.COOKIE,B.CANDY,B.JELLY];
 
 // ================= texture atlas (toy-like tiles)
 const TILE={}; let tileCount=0;
@@ -364,8 +366,8 @@ paint('log_side',(P)=>{toy(P,'#c08455');for(let y=2;y<14;y++){P(5,y,hex('#a86f44
 paint('log_top',(P)=>{toy(P,'#f2c98e');each((x,y)=>{const d=Math.hypot(x-7.5,y-7.5);if(d>6.2)P(x,y,hex('#c08455'));else if(Math.abs(d-3.5)<.6)P(x,y,hex('#dba86a'));});});
 paint('leaves',(P,V,r)=>{toy(P,'#45c98a');for(let k=0;k<4;k++){const x=2+(r()*10|0),y=2+(r()*10|0);for(let d=0;d<3;d++)dot(P,x+d%2,y+(d>>1),hex('#6fe0a6'));}});
 paint('concrete',(P)=>{toy(P,'#ece8fa');P(3,3,hex('#ffffff'));P(4,3,hex('#ffffff'));P(3,4,hex('#ffffff'));});
-paint('glass',(P)=>{each((x,y)=>P(x,y,hex('#c8f2ff'),70));star(P,5,5,hex('#ffffff'),230);P(10,9,hex('#ffffff'),200);});
-paint('glass_open',(P)=>{each((x,y)=>P(x,y,hex('#c8f2ff'),(x<2||y<2||x>13||y>13)?150:10));});
+paint('glass',(P)=>each((x,y)=>{const e=x===0||y===0||x===15||y===15,e2=x===1||y===1||x===14||y===14,s=(x+y===6||x+y===7||x+y===11)&&x<9;P(x,y,e?[236,250,255]:e2?[120,200,240]:s?[255,255,255]:[170,225,255],e?245:e2?200:s?190:105);}));
+paint('glass_open',(P)=>each((x,y)=>{const e=(x<2||y<2||x>13||y>13)&&((x+y)%3!==0);P(x,y,[220,245,255],e?210:12);}));
 paint('water',(P)=>each((x,y)=>{const w=Math.abs(((y+Math.round(Math.sin(x*.7)*1.5))%6))<1;P(x,y,w?hex('#a9dcff'):hex('#5ab8ff'),175);}));
 paint('glow',(P,V,r)=>{toy(P,'#3d4fa8');for(let k=0;k<4;k++)star(P,2+(r()*12|0),2+(r()*12|0),hex('#bff1ff'));});
 paint('lamp',(P)=>{toy(P,'#ffd45e');each((x,y)=>{const d=Math.hypot(x-7.5,y-7.5);if(d<4)P(x,y,hex('#fffbe0'));});});
@@ -375,7 +377,7 @@ paint('dia_ore',(P,V,r)=>{toy(P,'#aaa6d2');const C=['#ff8fd8','#8fe6ff','#ffe28f
 paint('diamond',(P)=>{each((x,y)=>{const t=(x+y)/30;P(x,y,[120+t*135,220-t*60,255-t*30]);});star(P,5,5,hex('#ffffff'));P(11,10,hex('#ffffff'));});
 paint('tnt_side',(P,V,r)=>{toy(P,'#ff6fb5');const C=['#ffe066','#7ff0ff','#ffffff','#9cff8f'];for(let k=0;k<9;k++)P(1+(r()*14|0),1+(r()*14|0),hex(C[k%4]));for(let x=0;x<16;x++)P(x,7,hex('#ffe066'));});
 paint('tnt_top',(P)=>{toy(P,'#ff6fb5');star(P,7,7,hex('#ffe066'));star(P,8,8,hex('#ffe066'));});
-paint('strong_glass',(P)=>each((x,y)=>{const g=x%5===0||y%5===0;P(x,y,g?hex('#c6b8ff'):hex('#d8f6ff'),g?240:70);}));
+paint('strong_glass',(P)=>each((x,y)=>{const g=x%5===0||y%5===0;P(x,y,g?hex('#c6b8ff'):hex('#bfe9ff'),g?245:110);}));
 paint('warm_water',(P)=>each((x,y)=>{const w=Math.abs(((y+Math.round(Math.sin(x*.7)*1.5))%6))<1;P(x,y,w?hex('#ffd0a0'):hex('#ff9a5c'),180);}));
 paint('clean_water',(P)=>{each((x,y)=>P(x,y,hex('#b8f6ff'),140));star(P,4,4,hex('#ffffff'),240);star(P,11,10,hex('#ffffff'),240);});
 paint('bedrock',(P,V,r)=>{toy(P,'#f1eefc',{bevel:false});for(let k=0;k<6;k++)dot(P,1+(r()*13|0),1+(r()*13|0),hex('#ffffff'));});
@@ -426,7 +428,12 @@ for(const d of DEF){const t=d.t.map(n=>TILE[n]);d.tt=t.length===1?[t[0],t[0],t[0
 // average colour of each block (for particles)
 const BCOL=[];{const data=actx.getImageData(0,0,256,256).data;for(let id=0;id<NB;id++){const t=DEF[id].tt[1];let r=0,g=0,b=0,n=0;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const o=(((t/16|0)*16+y)*256+(t%16)*16+x)*4;r+=data[o];g+=data[o+1];b+=data[o+2];n++;}BCOL[id]=[r/n/255,g/n/255,b/n/255];}}
 const ICON={};
-function icon(id){if(ICON[id])return ICON[id];const c=document.createElement('canvas');c.width=c.height=48;const g=c.getContext('2d');g.imageSmoothingEnabled=false;const t=DEF[id].tt,k=1.3;
+function icon(id){if(ICON[id])return ICON[id];const c=document.createElement('canvas');c.width=c.height=48;const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+  if(id===B.TABLE||id===B.PET_HOUSE){g.lineJoin='round';g.lineWidth=2.5;g.strokeStyle='#3a2140';const sh=(f,st)=>{g.fillStyle=f;g.fill();g.stroke();};
+    if(id===B.TABLE){g.beginPath();g.rect(6,14,36,8);sh('#efb86e');for(const x of[9,35]){g.beginPath();g.rect(x,22,5,20);sh('#d1964f');}}
+    else{g.beginPath();g.moveTo(4,22);g.lineTo(24,5);g.lineTo(44,22);g.closePath();sh('#ff7a9c');g.beginPath();g.rect(8,22,32,21);sh('#efb86e');
+      g.beginPath();g.moveTo(17,43);g.lineTo(17,33);g.arc(24,33,7,Math.PI,0);g.lineTo(31,43);g.closePath();sh('#5a3a2a');g.fillStyle='#ffd45e';g.fillRect(22,24,4,3);}
+    return ICON[id]=c.toDataURL();}const t=DEF[id].tt,k=1.3;
   const face=(tile,a,b,cc,dd,e,f,dark)=>{g.setTransform(a,b,cc,dd,e,f);g.drawImage(atlas,(tile%16)*16,(tile/16|0)*16,16,16,0,0,16,16);if(dark){g.fillStyle=`rgba(0,0,0,${dark})`;g.fillRect(0,0,16,16);}};
   face(t[0],k,k/2,-k,k/2,24,3,0);face(t[1],k,k/2,0,k,24-16*k,3+8*k,.18);face(t[1],k,-k/2,0,k,24,3+16*k,.34);
   return ICON[id]=c.toDataURL();}
@@ -655,7 +662,9 @@ const cloudTex=(()=>{const c=document.createElement('canvas');c.width=c.height=5
     for(const ox of[-512,0,512])for(const oy of[-512,0,512]){g.save();g.translate(ox,oy);g.beginPath();g.arc(x,y,rad,0,7);g.fill();g.restore();}}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,3);return t;})();
 const clouds=[];for(const[y,op,sp]of[[1,.95,.6],[6,.55,1]]){const m=new THREE.Mesh(new THREE.PlaneGeometry(600,600),new THREE.MeshBasicMaterial({map:cloudTex,transparent:true,opacity:op,depthWrite:false,fog:false,color:0xffffff}));m.rotation.x=-Math.PI/2;m.position.set(W/2,y,W/2);m.renderOrder=-1;scene.add(m);clouds.push({m,sp});}
-const outline=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.004,1.004,1.004)),new THREE.LineBasicMaterial({color:0xffd23f}));outline.visible=false;scene.add(outline);
+const outline=new THREE.Group();{const ed=(s,c)=>new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(s,s,s)),new THREE.LineBasicMaterial({color:c}));
+  outline.add(ed(1.006,0x1a1030),ed(1.016,0x1a1030),ed(1.03,0xffffff),ed(1.04,0x1a1030));
+  outline.add(new THREE.Mesh(new THREE.BoxGeometry(1.012,1.012,1.012),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.16,depthWrite:false})));}outline.visible=false;scene.add(outline);
 // handheld torch: a spotlight for creatures + a little torch model in the player's hand
 scene.add(camera);
 const torchLight=new THREE.SpotLight(0xfff0c8,0,26,.5,.5,1.2);camera.add(torchLight);const torchTgt=new THREE.Object3D();torchTgt.position.set(0,0,-1);camera.add(torchTgt);torchLight.target=torchTgt;
@@ -677,7 +686,16 @@ const SHAPES={
   chair:[[[.08,0,.08],[.92,.45,.92]],[[.08,.45,.08],[.92,1,.28]],[[.08,.45,.28],[.22,.72,.92]],[[.78,.45,.28],[.92,.72,.92]]],
   table:[[[.1,0,.1],[.2,.55,.2]],[[.8,0,.1],[.9,.55,.2]],[[.1,0,.8],[.2,.55,.9]],[[.8,0,.8],[.9,.55,.9]],[[.02,.55,.02],[.98,.66,.98]],[[.44,.66,.44],[.56,.8,.56]],[[.3,.8,.3],[.7,1,.7],'lamp']],
   mini:[[[.28,0,.28],[.72,.5,.72]]],
+  tbl:[[[.1,0,.1],[.22,.8,.22]],[[.78,0,.1],[.9,.8,.22]],[[.1,0,.78],[.22,.8,.9]],[[.78,0,.78],[.9,.8,.9]],[[0,.8,0],[1,.94,1]]],
   bed:[[[0,0,0],[1,.66,1]],[[0,.66,0],[1,1,.2],'bed_side'],[[.14,.66,.22],[.86,.8,.5],'concrete']]};
+// Pet House: one 2x2 wooden house, cut into 4 corner pieces. Door faces the player.
+const PET_PARTS=(()=>{const R='chair_r',big=[[[0,0,0],[2,.12,2]],[[0,.12,0],[2,1.25,.16]],[[0,.12,0],[.16,1.25,2]],[[1.84,.12,0],[2,1.25,2]],
+  [[0,.12,1.84],[.5,1.25,2]],[[1.5,.12,1.84],[2,1.25,2]],[[.5,1.02,1.84],[1.5,1.25,2]],[[.5,.12,.16],[1.5,1.02,.22],'choco'],[[.25,.12,.25],[1.75,.22,1.5],'chair_b'],
+  [[-0,1.25,0],[2,1.4,2],R],[[.2,1.4,0],[1.8,1.55,2],R],[[.4,1.55,0],[1.6,1.7,2],R],[[.6,1.7,0],[1.4,1.85,2],R],[[.8,1.85,0],[1.2,2,2],R],[[.88,1.08,1.92],[1.12,1.2,2],'lamp']];
+  const out=[];for(let c=0;c<8;c++){const cx=c&1,cz=(c>>1)&1,cy=c>>2,L=[];for(const b of big){const a=[Math.max(b[0][0],cx),Math.max(b[0][1],cy),Math.max(b[0][2],cz)],d=[Math.min(b[1][0],cx+1),Math.min(b[1][1],cy+1),Math.min(b[1][2],cz+1)];
+    if(d[0]-a[0]>.001&&d[1]-a[1]>.001&&d[2]-a[2]>.001){const bx=[[a[0]-cx,a[1]-cy,a[2]-cz],[d[0]-cx,d[1]-cy,d[2]-cz]];if(b[2])bx.push(b[2]);L.push(bx);}}out.push(L);}return out;})();
+function petCell(c,r){let X=(c&1)+.5,Z=((c>>1)&1)+.5;for(let k=0;k<r;k++){const t=X;X=2-Z;Z=t;}return[Math.floor(X),Math.floor(Z),c>>2];}
+function petSiblings(x,y,z){const m=meta.get(I(x,y,z))||0,r=m&3,c=(m>>2)&7,[wx,wz,wy]=petCell(c,r),ox=x-wx,oz=z-wz,oy=y-wy,res=[];for(let k=0;k<8;k++){const[a,b,h]=petCell(k,r);res.push([ox+a,oy+h,oz+b]);}return res;}
 function rotBox(b,r){let a=b[0].slice(),c=b[1].slice();for(let k=0;k<r;k++){a=[1-a[2],a[1],a[0]];c=[1-c[2],c[1],c[0]];}
   return[[Math.min(a[0],c[0]),a[1],Math.min(a[2],c[2])],[Math.max(a[0],c[0]),c[1],Math.max(a[2],c[2])]];}
 function quad(b,ox,oy,oz,f,tile,sky,g,l,mn,mx,ftop){const base=b.p.length/3,tu=(tile%16)/16,tv=1-((tile/16|0)+1)/16,e=.4/256,sz=1/16;
@@ -691,7 +709,7 @@ const dirty=new Set();
 function buildChunk(cx,cz){const O={p:[],u:[],a:[],i:[]},T={p:[],u:[],a:[],i:[]},x0=cx*CS,z0=cz*CS;
   for(let y=0;y<H;y++)for(let z=z0;z<z0+CS;z++)for(let x=x0;x<x0+CS;x++){const i=I(x,y,z),id=vox[i];if(!id)continue;const d=DEF[id];
     if(d.shape){const r=meta.get(i)||0,sky=skyAt(x,y,z),g=Math.max(G[i],d.glow)/13,l=Math.max(L[i],d.lamp)/13;
-      for(const bx of SHAPES[d.shape]){const[mn,mx]=rotBox(bx,r);for(const f of FACES)quad(O,x,y,z,f,bx[2]?TILE[bx[2]]:d.tt[f.k],sky,g,l,mn,mx);}continue;}
+      for(const bx of(d.shape==='pet'?PET_PARTS[(r>>2)&7]:SHAPES[d.shape])){const[mn,mx]=rotBox(bx,r&3);for(const f of FACES)quad(O,x,y,z,f,bx[2]?TILE[bx[2]]:d.tt[f.k],sky,g,l,mn,mx);}continue;}
     const buf=d.trans?T:O;let ftop;if(d.fluid){const ab=y+1<H?vox[i+W*W]:0;if(ab!==id)ftop=.88;}
     for(const f of FACES){const nx=x+f.n[0],ny=y+f.n[1],nz=z+f.n[2];const inb=nx>=0&&nx<W&&nz>=0&&nz<W&&ny>=0&&ny<H;
       const nid=inb?vox[I(nx,ny,nz)]:(ny<0?B.BEDROCK:0);if(OPAQ[nid])continue;
@@ -910,7 +928,7 @@ function updateMobs(dt){
       if(nz<(al?6:4)&&Math.random()<.75)trySpawnHostile('zombie');else if(nf<(curType==='dark'?3:2))trySpawnHostile('fizzler');}}
   let danger=null,dd=9;for(const m of mobs)if(m.kind==='zombie'){const d=Math.hypot(m.x-P.x,m.z-P.z);if(d<dd&&Math.abs(m.y-P.y)<4){dd=d;danger=m;}}
   for(const m of mobs.slice()){if(m.dead)continue;m.cd-=dt;m.flash-=dt;m.love-=dt;
-    if(m.kind==='zombie')zombieAI(m,dt);else if(m.kind==='fizzler')fizzlerAI(m,dt);else if(m.kind==='animal')animalAI(m,dt);else if(m.kind==='villager')villagerAI(m,dt);else petAI(m,dt,danger);
+    if(m.kind==='zombie')zombieAI(m,dt);else if(m.kind==='fizzler')fizzlerAI(m,dt);else if(m.kind==='animal')animalAI(m,dt);else if(m.kind==='villager')villagerAI(m,dt);else if(m.nap&&vox[I(m.nap.x,m.nap.y,m.nap.z)]===B.PET_HOUSE){m.x=m.nap.px;m.y=m.nap.py;m.z=m.nap.pz;m.vx=m.vz=m.vy=0;m.ground=true;}else{m.nap=null;petAI(m,dt,danger);}
     if(!m.dead)animMob(m,dt);}}
 function wanderStep(m,dt,speed,still){m.wander-=dt;if(m.wander<=0){m.wander=2+Math.random()*4;const a=Math.random()*6.28,st=Math.random()<(still||.35);m.wx=st?0:Math.cos(a)*speed;m.wz=st?0:Math.sin(a)*speed;}return[m.wx,m.wz];}
 function burnInDay(m,dt){if(!WORLDS[curType].always&&dayF>.45){m.burn=(m.burn||0)+dt;if(m.burn>1+Math.random()*5){if(m.kind==='zombie')killZombie(m,null,true);else{burst(m.x,m.y+.7,m.z,[1,.8,.95],18,3,.8,-1);removeMob(m);}return true;}}return false;}
@@ -1001,11 +1019,12 @@ function pick(noGhost){const o=camera.position,d=dirVec();let bt=reach;const blk
   if(!noGhost&&!mob){const gh=rayGhost();if(gh&&gh.t<bt)return{ghost:gh.g};}
   return mob?{mob}:blk?{blk}:null;}
 function held(){return S.hotbar[S.slot];}
-function petPet(m){if(petCD>0)return;petCD=1;tutEv('pet');burst(m.x,m.y+1,m.z,[1,.45,.7],14,2.5,.9,2);snd('pet');addAura(2);toast(`${m.name} loves you! +2 aura`);}
+function petPet(m){if(m.nap){m.nap=null;toast(`${m.name} wakes up!`);}if(petCD>0)return;petCD=1;tutEv('pet');burst(m.x,m.y+1,m.z,[1,.45,.7],14,2.5,.9,2);snd('pet');addAura(2);toast(`${m.name} loves you! +2 aura`);}
 function doBreak(){if(P.dead)return;const h=pick(true);if(!h)return;if(h.mob){mobAction(h.mob,'hit');return;}
   const{x,y,z,id}=h.blk;if(id===B.BEDROCK){toast('Bedrock is too strong to break');return;}
   if(id===B.TREASURE){openTreasure(x,y,z);return;}
   const i=I(x,y,z);if(id===B.SHELF)emptyShelf(i);
+  if(id===B.PET_HOUSE){for(const[a,b,c]of petSiblings(x,y,z))if(a>=0&&c>=0&&a<W&&c<W&&vox[I(a,b,c)]===B.PET_HOUSE)setBlock(a,b,c,0,0,false);}
   setBlock(x,y,z,0,0,false);burst(x+.5,y+.5,z+.5,BCOL[id],12,4,.7);snd('break');tutEv('break');
   if(id===B.DIA_ORE){give(B.DIAMOND,1);addAura(15);pop('AURA GEM!','+1 Aura Gem · +15 aura');snd('coin');}
   else if(LIMITED.has(id))give(id,1);}
@@ -1023,8 +1042,18 @@ function doPlace(){if(P.dead)return;const h=pick();if(!h)return;if(h.ghost){plac
   if(SOLID[id]&&px<P.x+.3&&px+1>P.x-.3&&pz<P.z+.3&&pz+1>P.z-.3&&py<P.y+P.h&&py+1>P.y){
     if(py===Math.floor(P.y+.002)&&!collides(P.x,py+1,P.z))lift=true;else return;}
   for(const m of mobs)if(SOLID[id]&&Math.floor(m.x)===px&&Math.floor(m.z)===pz&&(Math.floor(m.y)===py||Math.floor(m.y+1)===py))return;
-  let rot=0;if(DEF[id].shape==='chair'||DEF[id].shape==='bed'){const d=dirVec();rot=Math.abs(d.x)>Math.abs(d.z)?(d.x>0?1:3):(d.z>0?2:0);}
+  let rot=0;if(DEF[id].shape==='chair'||DEF[id].shape==='bed'||DEF[id].shape==='pet'){const d=dirVec();rot=Math.abs(d.x)>Math.abs(d.z)?(d.x>0?1:3):(d.z>0?2:0);}
+  if(id===B.PET_HOUSE){placePetHouse(px,py,pz,rot);return;}
   setBlock(px,py,pz,id,rot,true);snd('place');if(lift){P.y=py+1;P.vy=0;P.ground=true;}tutEv('place');if(LIMITED.has(id)){S.inv[id]--;renderHotbar();}if(Math.random()<.5)addAura(1,true);}
+function placePetHouse(px,py,pz,r){const d=dirVec(),fx=Math.abs(d.x)>Math.abs(d.z)?Math.sign(d.x):0,fz=fx?0:Math.sign(d.z)||1;
+  const tries=[];for(const ox of[0,-1])for(const oz of[0,-1])tries.push([px+ox,pz+oz]);
+  // prefer the 2x2 spot that grows away from the player
+  tries.sort((a,b)=>((b[0]-px)*fx+(b[1]-pz)*fz+.4*((b[0]-px)+(b[1]-pz)))-((a[0]-px)*fx+(a[1]-pz)*fz+.4*((a[0]-px)+(a[1]-pz))));
+  for(const[ox,oz]of tries){const cells=[];let ok=true;for(let c=0;c<8;c++){const[a,b,h]=petCell(c,r),x=ox+a,z=oz+b,y=py+h;
+      if(x<0||z<0||x>=W||z>=W||y<0||y>=H){ok=false;break;}const cur=vox[I(x,y,z)];if(cur&&!FLUID[cur]){ok=false;break;}
+      if(x<P.x+.3&&x+1>P.x-.3&&z<P.z+.3&&z+1>P.z-.3&&y<P.y+P.h&&y+1>P.y){ok=false;break;}for(const m of mobs)if(Math.floor(m.x)===x&&Math.floor(m.z)===z&&Math.abs(m.y-y)<1.5){ok=false;break;}if(!ok)break;cells.push([x,y,z,c]);}
+    if(!ok)continue;for(const[x,y,z,c]of cells)setBlock(x,y,z,B.PET_HOUSE,r|(c<<2),true);snd('place');tutEv('place');pop('PET HOUSE!','A cozy home for your pet');addAura(2,true);return;}
+  toast('The Pet House needs a clear space 2 blocks wide, 2 deep and 2 high');}
 function doUse(){if(P.dead)return;if(P.sit){standUp();return;}const h=pick(true);if(!h){toast('Look at a chair, glass, Party Popper, shelf, Dream Pod or treasure and press E');return;}
   if(h.mob){mobAction(h.mob,'use');return;}
   const{x,y,z,id}=h.blk,i=I(x,y,z);
@@ -1035,6 +1064,9 @@ function doUse(){if(P.dead)return;if(P.sit){standUp();return;}const h=pick(true)
   if(id===B.SHELF){openShelf(i);return;}
   if(id===B.TREASURE){openTreasure(x,y,z);return;}
   if(id===B.BED){goToSleep(x,y,z);return;}
+  if(id===B.PET_HOUSE){const pet=mobs.find(m=>m.kind==='dog'||m.kind==='cat');if(pet&&pet.nap){pet.nap=null;toast(`${pet.name||'Your pet'} wakes up and comes out to play!`);}else if(pet){const sb=petSiblings(x,y,z),fl=sb.filter(c=>c[1]===Math.min(...sb.map(q=>q[1])));pet.x=(fl[0][0]+fl[3][0])/2+.5;pet.z=(fl[0][2]+fl[3][2])/2+.5;pet.y=fl[0][1]+.13;pet.vy=0;
+    pet.nap={x:fl[0][0],y:fl[0][1],z:fl[0][2],px:pet.x,py:pet.y,pz:pet.z};addAura(2,true);toast(`${pet.name||'Your pet'} hops into the Pet House for a nap. Press ${isTouch?'Use':'E'} again to wake it up`);}else toast('A cozy Pet House. Make a pet friend and it can sleep here');snd('pop');return;}
+  if(id===B.TABLE){toast('A nice wooden table. Put chairs around it');return;}
   toast(DEF[id].tip||`That is ${DEF[id].name}`);}
 function goToSleep(x,y,z){
   const near=mobs.find(m=>HOSTILE(m.kind)&&Math.hypot(m.x-P.x,m.z-P.z)<10);if(near){toast('Too many Gloomies nearby to dream. Calm them with light first!');return;}
@@ -1085,9 +1117,9 @@ function hurt(n,fx,fz){if(P.hurtCD>0||P.dead)return;P.hearts-=n;P.hurtCD=.8;P.la
   if(P.hearts<=0){P.hearts=0;P.dead=1.8;pop('YOU FAINTED','Back to your spawn point');}updateHUD();}
 function goHome(){if(!running||P.dead)return;if(homeCD>0){toast('Wait a moment before going home again');return;}homeCD=2;if(P.sit)P.sit=null;const fromD=Math.hypot(P.x-spawnPt.x,P.z-spawnPt.z);setTimeout(()=>tutEv('home',fromD),10);
   const s=safeSpot(spawnPt);P.x=s.x;P.y=s.y;P.z=s.z;P.vy=0;P.kx=P.kz=0;stuckT=0;
-  for(const m of mobs)if(isPet(m)){m.x=P.x+(m.kind==='dog'?1.2:-1.2);m.z=P.z+.8;m.y=P.y+.2;m.vy=0;}
+  for(const m of mobs)if(isPet(m)){m.nap=null;m.x=P.x+(m.kind==='dog'?1.2:-1.2);m.z=P.z+.8;m.y=P.y+.2;m.vy=0;}
   burst(P.x,P.y+1,P.z,[1,.84,.25],40,5,1,4);snd('level');pop('HOME!','Back where you started');}
-function respawn(){P.dead=0;P.hearts=5;{const s=safeSpot(spawnPt);P.x=s.x;P.y=s.y;P.z=s.z;}P.vy=0;for(const m of mobs.slice())if(HOSTILE(m.kind)&&Math.hypot(m.x-P.x,m.z-P.z)<26)removeMob(m);for(const m of mobs)if(isPet(m)){m.x=P.x+1;m.z=P.z+1;m.y=P.y;}updateHUD();}
+function respawn(){P.dead=0;P.hearts=5;{const s=safeSpot(spawnPt);P.x=s.x;P.y=s.y;P.z=s.z;}P.vy=0;for(const m of mobs.slice())if(HOSTILE(m.kind)&&Math.hypot(m.x-P.x,m.z-P.z)<26)removeMob(m);for(const m of mobs)if(isPet(m)){m.nap=null;m.x=P.x+1;m.z=P.z+1;m.y=P.y;}updateHUD();}
 function toggleTorch(){torchOn=!torchOn;if(torchOn)tutEv('torch');snd(torchOn?'pop':'place');toast(torchOn?'Torch on':'Torch off');$('bTorch').classList.toggle('on',torchOn);const tb=document.querySelector('#tbtns [data-act="torch"]');if(tb)tb.classList.toggle('on',torchOn);}
 function emote67(){if(emoteCD>0)return;tutEv('67');emoteT=1.8;emoteCD=2.4;pop('6 7!','+7 aura');addAura(7,true);snd('67');}
 
