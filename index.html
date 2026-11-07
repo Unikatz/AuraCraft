@@ -226,7 +226,7 @@ button:focus-visible{outline:3px solid var(--aura);outline-offset:2px}
   <div id="tbtns">
     <button data-act="break">Break</button><button data-act="place">Place</button><button data-act="jump">Jump</button>
     <button data-act="use">Use</button><button data-act="aura">Aura</button><button data-act="run">Run</button>
-    <button data-act="67">6 7</button><button data-act="bag">Blocks</button><button data-act="look">Center</button><button data-act="torch">Torch</button><button data-act="view">View</button><button data-act="home">Home</button>
+    <button data-act="67">6 7</button><button data-act="bag">Blocks</button><button data-act="look">Center</button><button data-act="torch">Torch</button><button data-act="home">Home</button>
   </div>
 </div>
 
@@ -245,8 +245,8 @@ button:focus-visible{outline:3px solid var(--aura);outline-offset:2px}
     <div id="loading" hidden>Building your world…</div>
     <div class="worlds" id="worldPick"></div>
     <div class="how">
-      <b>Computer:</b> WASD to move · mouse to look · left click break · right click place · Space jump (hold it at a wall to climb) · Shift run · E use · T torch · V camera · R go home · G quick guide · hold F to aura farm · type 6 then 7<br>
-      <b>Tablet or phone:</b> left stick to move · drag to look · buttons for everything else
+      <b>Computer:</b> WASD to move · mouse to look · left click break · right click place · Space jump (hold it at a wall to climb) · Shift run · E use · T torch · ← → turn · R go home · G quick guide · hold F to aura farm · type 6 then 7<br>
+      <b>Tablet or phone:</b> left stick to walk and turn · drag to look around · buttons for everything else
     </div>
   </div>
 </div>
@@ -678,7 +678,7 @@ const SHAPES={
   chair:[[[.08,0,.08],[.92,.45,.92]],[[.08,.45,.08],[.92,1,.28]],[[.08,.45,.28],[.22,.72,.92]],[[.78,.45,.28],[.92,.72,.92]]],
   table:[[[.1,0,.1],[.2,.55,.2]],[[.8,0,.1],[.9,.55,.2]],[[.1,0,.8],[.2,.55,.9]],[[.8,0,.8],[.9,.55,.9]],[[.02,.55,.02],[.98,.66,.98]],[[.44,.66,.44],[.56,.8,.56]],[[.3,.8,.3],[.7,1,.7],'lamp']],
   mini:[[[.28,0,.28],[.72,.5,.72]]],
-  bed:[[[0,0,0],[1,.56,1]]]};
+  bed:[[[0,0,0],[1,.66,1]],[[0,.66,0],[1,1,.2],'bed_side'],[[.14,.66,.22],[.86,.8,.5],'concrete']]};
 function rotBox(b,r){let a=b[0].slice(),c=b[1].slice();for(let k=0;k<r;k++){a=[1-a[2],a[1],a[0]];c=[1-c[2],c[1],c[0]];}
   return[[Math.min(a[0],c[0]),a[1],Math.min(a[2],c[2])],[Math.max(a[0],c[0]),c[1],Math.max(a[2],c[2])]];}
 function quad(b,ox,oy,oz,f,tile,sky,g,l,mn,mx,ftop){const base=b.p.length/3,tu=(tile%16)/16,tv=1-((tile/16|0)+1)/16,e=.4/256,sz=1/16;
@@ -963,7 +963,7 @@ let spawnT=2;
 
 
 // ================= your character (third-person) and camera
-let thirdP=true,camD=4.2,reach=6;
+let thirdP=false,camD=0,reach=6;
 const avatar=(()=>{const g=new THREE.Group(),legs=[],arms=[];const M=c=>toonMat(c);
   const shirt=M(0xff7ab0),skin=M(0xffd9c2),hair=M(0x2a2350),shoe=M(0x4a3f8a);
   for(const sx of[-1,1]){const p=pivot(sx*.13,.32,0,g);ball(p,M(0x5a6fd8),0,-.12,0,.1,.16,.1);ball(p,shoe,0,-.28,.04,.11,.07,.14);legs.push(p);}
@@ -1024,7 +1024,7 @@ function doPlace(){if(P.dead)return;const h=pick();if(!h)return;if(h.ghost){plac
   if(SOLID[id]&&px<P.x+.3&&px+1>P.x-.3&&pz<P.z+.3&&pz+1>P.z-.3&&py<P.y+P.h&&py+1>P.y){
     if(py===Math.floor(P.y+.002)&&!collides(P.x,py+1,P.z))lift=true;else return;}
   for(const m of mobs)if(SOLID[id]&&Math.floor(m.x)===px&&Math.floor(m.z)===pz&&(Math.floor(m.y)===py||Math.floor(m.y+1)===py))return;
-  let rot=0;if(DEF[id].shape==='chair'){const d=dirVec();rot=Math.abs(d.x)>Math.abs(d.z)?(d.x>0?1:3):(d.z>0?2:0);}
+  let rot=0;if(DEF[id].shape==='chair'||DEF[id].shape==='bed'){const d=dirVec();rot=Math.abs(d.x)>Math.abs(d.z)?(d.x>0?1:3):(d.z>0?2:0);}
   setBlock(px,py,pz,id,rot,true);snd('place');if(lift){P.y=py+1;P.vy=0;P.ground=true;}tutEv('place');if(LIMITED.has(id)){S.inv[id]--;renderHotbar();}if(Math.random()<.5)addAura(1,true);}
 function doUse(){if(P.dead)return;if(P.sit){standUp();return;}const h=pick(true);if(!h){toast('Look at a chair, glass, Party Popper, shelf, Dream Pod or treasure and press E');return;}
   if(h.mob){mobAction(h.mob,'use');return;}
@@ -1041,7 +1041,7 @@ function goToSleep(x,y,z){
   const near=mobs.find(m=>HOSTILE(m.kind)&&Math.hypot(m.x-P.x,m.z-P.z)<10);if(near){toast('Too many Gloomies nearby to dream. Calm them with light first!');return;}
   const night=dayF<.45||WORLDS[curType].nosun,guide=tut&&EVK[tut.step]==='sleep';
   if(!night&&napCD>0&&!guide){toast('You are not sleepy yet. Come back at night');return;}
-  P.sit={x,y,z,bed:true};P.x=x+.5;P.z=z+.5;P.y=y+.56;P.vy=0;sleepT=2.4;sleepNight=night;snd('pet');}
+  P.sit={x,y,z,bed:true};P.x=x+.5;P.z=z+.5;P.y=y+.66;P.vy=0;sleepT=2.4;sleepNight=night;snd('pet');}
 function wakeUp(){const night=sleepNight;sleepT=0;
   if(night&&!WORLDS[curType].nosun){S.time=.26;for(const m of mobs.slice())if(HOSTILE(m.kind))removeMob(m);}
   P.hearts=5;updateHUD();addAura(night?25:5,true);napCD=night?0:60;snd('level');pop(night?'GOOD MORNING!':'SWEET DREAMS!',night?'+25 aura · The Gloomies drifted away':'+5 aura');tutEv('sleep');standUp();}
@@ -1098,8 +1098,9 @@ function update(dt){
   S.time=(S.time+dt/DAYLEN)%1;
   P.hurtCD-=dt;homeCD-=dt;stuckHintCD-=dt;P.lastHurt+=dt;guardMsgCD-=dt;petCD-=dt;emoteCD-=dt;if(emoteT>0)emoteT-=dt;
   if(P.dead>0){P.dead-=dt;if(P.dead<=0)respawn();}
-  let mx=0,mz=0;if(keys.has('KeyW')||keys.has('ArrowUp'))mz+=1;if(keys.has('KeyS')||keys.has('ArrowDown'))mz-=1;if(keys.has('KeyD')||keys.has('ArrowRight'))mx+=1;if(keys.has('KeyA')||keys.has('ArrowLeft'))mx-=1;
-  mx+=joyX;mz+=-joyY;const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml;}
+  let mx=0,mz=0;if(keys.has('KeyW')||keys.has('ArrowUp'))mz+=1;if(keys.has('KeyS')||keys.has('ArrowDown'))mz-=1;if(keys.has('KeyD'))mx+=1;if(keys.has('KeyA'))mx-=1;
+  {let tr=0;if(keys.has('ArrowLeft'))tr+=1;if(keys.has('ArrowRight'))tr-=1;tr-=joyX*Math.min(1,Math.abs(joyX)*1.6);if(tr&&!paused){P.yaw+=tr*2.6*dt;lookAcc+=Math.abs(tr)*2.6*dt;}}
+  mz+=-joyY;const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml;}
   const moving=ml>.1,jump=keys.has('Space')||touchJump,run=(keys.has('ShiftLeft')||keys.has('ShiftRight')||touchRun)&&moving;
   if(sleepT>0){sleepT-=dt;if(sleepT<=0)wakeUp();}napCD-=dt;
   if(P.sit){if((moving||jump)&&!(sleepT>0))standUp();else{P.vy=0;}}
@@ -1449,7 +1450,7 @@ function openWorlds(){openPanel('Isles',body=>{body.innerHTML='<p class="sub">Fl
   for(const k in WORLDS){const w=WORLDS[k];const row=document.createElement('div');row.className='row';row.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(${w.strata.join(',')})"></div><div class="grow">${w.name}${k===curType?' (you are here)':''}<small>${w.blurb}</small></div>`;
     const b=document.createElement('button');b.className='btn gold';b.textContent=k===curType?'Here':'Go';b.disabled=k===curType;b.onclick=()=>{closePanel();toast(`Going to ${w.name}…`);setTimeout(()=>{loadWorld(k);persist();pop(w.name.toUpperCase(),'Welcome!');tutEv('world');},40);};row.appendChild(b);body.appendChild(row);}});}
 function openHelp(){openPanel('How to play',body=>{body.innerHTML=`<div class="keys">
-  <b>Move</b><span>W A S D or arrow keys (left stick on a tablet)</span><b>Look</b><span>Mouse, or drag the screen</span>
+  <b>Move</b><span>W A S D or arrow keys (left stick on a tablet)</span><b>Look and turn</b><span>Mouse, the left and right arrow keys, or drag the screen. On a tablet, pushing the stick left or right turns you</span>
   <b>Break</b><span>Left click. Hit zombies the same way</span><b>Place</b><span>Right click</span><b>Jump / swim</b><span>Space</span><b>Run</b><span>Shift</span>
   <b>Use (E)</b><span>Sit on chairs, sleep in beds, open glass doors, light TNT, open bookshelves and treasure, pet animals, trade with villagers</span>
   </div><div class="build"><h3 style="font-family:var(--display);font-weight:400;color:var(--pink);margin:14px 0 6px">How to build a house</h3>
@@ -1486,9 +1487,9 @@ cv.addEventListener('pointerdown',e=>{if(!running||paused)return;snd('');
   if(e.pointerType==='touch'){if(lookId===null){lookId=e.pointerId;lx=e.clientX;ly=e.clientY;}return;}
   if(locked()){if(e.button===0)doBreak();else if(e.button===2)doPlace();return;}
   drag={x:e.clientX,y:e.clientY,moved:0,b:e.button};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
-cv.addEventListener('pointermove',e=>{if(!running)return;if(e.pointerType==='touch'){if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,.0055);lx=e.clientX;ly=e.clientY;}return;}
-  if(locked())return;if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;if(!paused)look(dx,dy,.0045);}});
-document.addEventListener('mousemove',e=>{if(locked()&&running&&!paused)look(e.movementX||0,e.movementY||0,.0024);});
+cv.addEventListener('pointermove',e=>{if(!running)return;if(e.pointerType==='touch'){if(e.pointerId===lookId){look(e.clientX-lx,e.clientY-ly,.008);lx=e.clientX;ly=e.clientY;}return;}
+  if(locked())return;if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved+=Math.abs(dx)+Math.abs(dy);drag.x=e.clientX;drag.y=e.clientY;if(!paused)look(dx,dy,.0065);}});
+document.addEventListener('mousemove',e=>{if(locked()&&running&&!paused)look(e.movementX||0,e.movementY||0,.0032);});
 const endPtr=e=>{if(e.pointerType==='touch'){if(e.pointerId===lookId)lookId=null;return;}if(!drag)return;const d=drag;drag=null;if(paused||d.moved>6)return;
   if(d.b===2)doPlace();else if(d.b===0){if(lockFailed)doBreak();else requestLock();}};
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null;drag=null;});
@@ -1500,7 +1501,7 @@ window.addEventListener('keydown',e=>{if(!running)return;const c=e.code;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(c))e.preventDefault();
   keys.add(c);if(e.repeat)return;
   if(c.startsWith('Digit')){const n=+c.slice(5);if(n>=1&&n<=9)selectSlot(n-1);if(n===6)last6=performance.now();if(n===7&&performance.now()-last6<800)emote67();}
-  if(c==='KeyT')toggleTorch();if(c==='KeyV')toggleView();if(c==='KeyR')goHome();if(c==='KeyG')startGuide();if(c==='KeyE')doUse();if(c==='KeyF')auraHold=true;if(c==='KeyQ')openBag();if(c==='KeyC')openCraft();if(c==='KeyB')openShop();if(c==='KeyM')openWorlds();if(c==='KeyH')openHelp();});
+  if(c==='KeyT')toggleTorch();if(c==='KeyR')goHome();if(c==='KeyG')startGuide();if(c==='KeyE')doUse();if(c==='KeyF')auraHold=true;if(c==='KeyQ')openBag();if(c==='KeyC')openCraft();if(c==='KeyB')openShop();if(c==='KeyM')openWorlds();if(c==='KeyH')openHelp();});
 window.addEventListener('keyup',e=>{keys.delete(e.code);if(e.code==='KeyF')auraHold=false;});
 window.addEventListener('blur',()=>{keys.clear();auraHold=false;});
 // touch controls
@@ -1512,7 +1513,7 @@ function moveJoy(e){const r=joy.getBoundingClientRect(),dx=e.clientX-(r.left+r.w
 for(const b of document.querySelectorAll('#tbtns button')){const a=b.dataset.act;
   b.addEventListener('pointerdown',e=>{e.preventDefault();if(!running||paused)return;snd('');
     if(a==='jump')touchJump=true;else if(a==='aura'){auraHold=true;b.classList.add('on');}else if(a==='break')doBreak();else if(a==='place')doPlace();else if(a==='use')doUse();
-    else if(a==='run'){touchRun=!touchRun;b.classList.toggle('on',touchRun);}else if(a==='67')emote67();else if(a==='bag')openBag();else if(a==='look')P.pitch=0;else if(a==='torch')toggleTorch();else if(a==='view')toggleView();else if(a==='home')goHome();});
+    else if(a==='run'){touchRun=!touchRun;b.classList.toggle('on',touchRun);}else if(a==='67')emote67();else if(a==='bag')openBag();else if(a==='look')P.pitch=0;else if(a==='torch')toggleTorch();else if(a==='home')goHome();});
   const up=()=>{if(a==='jump')touchJump=false;if(a==='aura'){auraHold=false;b.classList.remove('on');}};b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);}
 
 // ================= title screen
