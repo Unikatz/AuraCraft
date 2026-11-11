@@ -199,7 +199,9 @@ button:focus-visible{outline:3px solid var(--aura);outline-offset:2px}
       <button id="bGuide">Guide<kbd>G</kbd></button>
       <button id="bHome">Go home<kbd>R</kbd></button>
       <button id="bHelp">Help<kbd>H</kbd></button>
+      <button id="bTell">Tell us</button>
       <button id="bSound">Sound on</button>
+      <span id="ver" style="font-size:11px;color:var(--ink-2);align-self:center;width:100%;text-align:right"></span>
     </div>
   </div>
   <div class="chip" id="safe" hidden>Safe at home. Gloomies can't come in.</div>
@@ -1130,7 +1132,7 @@ function update(dt){
   P.hurtCD-=dt;homeCD-=dt;stuckHintCD-=dt;P.lastHurt+=dt;guardMsgCD-=dt;petCD-=dt;emoteCD-=dt;if(emoteT>0)emoteT-=dt;
   if(P.dead>0){P.dead-=dt;if(P.dead<=0)respawn();}
   let mx=0,mz=0;if(keys.has('KeyW')||keys.has('ArrowUp'))mz+=1;if(keys.has('KeyS')||keys.has('ArrowDown'))mz-=1;if(keys.has('KeyD'))mx+=1;if(keys.has('KeyA'))mx-=1;
-  {let tr=0;if(keys.has('ArrowLeft'))tr+=1;if(keys.has('ArrowRight'))tr-=1;tr-=joyX*Math.min(1,Math.abs(joyX)*1.6);if(tr&&!paused){P.yaw+=tr*2.6*dt;lookAcc+=Math.abs(tr)*2.6*dt;}}
+  {let tr=0;if(keys.has('ArrowLeft'))tr+=1;if(keys.has('ArrowRight'))tr-=1;tr-=joyX*Math.min(1,Math.abs(joyX)*1.6);if(tr&&!paused){const ts=2.6*(S.look||1);P.yaw+=tr*ts*dt;lookAcc+=Math.abs(tr)*ts*dt;}}
   mz+=-joyY;const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml;}
   const moving=ml>.1,jump=keys.has('Space')||touchJump,run=(keys.has('ShiftLeft')||keys.has('ShiftRight')||touchRun)&&moving;
   if(sleepT>0){sleepT-=dt;if(sleepT<=0)wakeUp();}napCD-=dt;
@@ -1334,14 +1336,15 @@ function livePic(){const cv=$('qPic');if(!build){cv.hidden=true;return;}cv.hidde
 const TUT=[
  {t:'Look around',d:()=>isTouch?'Drag your finger on the screen to look around.':'Click the world, then move your mouse to look around.',k:()=>isTouch?['Drag']:['Mouse']},
  {t:'Walk to the wooden block',d:()=>'Follow the pink beam. The arrow below shows which way to go.',k:()=>isTouch?['Left stick']:['W','A','S','D'],tg:()=>tutPos('jb')},
- {t:'Jump on top of it',d:()=>'Walk at the block and jump. Small steps also hop you up by themselves.',k:()=>isTouch?['Jump']:['Space'],tg:()=>tutPos('jb')},
  {t:'Break a block',d:()=>isTouch?'Look at a block and tap Break. Try the wooden block.':'Look at a block and left click. Try the wooden block.',k:()=>isTouch?['Break']:['Left click']},
  {t:'Pick a block',d:()=>'Open Blocks and tap the block you want. It goes into your hotbar.',k:()=>isTouch?['Blocks']:['Q']},
  {t:'Place 3 blocks',d:()=>isTouch?'Look at the side or top of a block and tap Place. The new block sticks to that side.':'Look at the side or top of a block and right click. The new block sticks to that side.',k:()=>isTouch?['Place']:['Right click'],n:3},
  {t:'Build your house',d:()=>'The glowing blocks show where each block goes. '+(isTouch?'Look at one and tap Place.':'Look at one and right click.')+' Do the walls first, then the roof. A roof keeps Gloomies out.',k:()=>isTouch?['Place']:['Right click'],tg:()=>tutPos('house'),build:true},
+ {t:'Sleep in your bed',d:()=>'Look at the bed in your house and press Use. Sleeping at night skips to morning and gives you lots of aura.',k:()=>isTouch?['Use']:['E'],tg:()=>tutPos('bed')},
+ {t:'Go home',d:()=>'Walk at least 10 blocks away, then go home. The map arrow always points home.',k:()=>isTouch?['Home']:['R']},
+ {t:'Jump on the wooden block',d:()=>'Follow the pink beam to the wooden block, walk at it and jump. Small steps also hop you up by themselves.',k:()=>isTouch?['Jump']:['Space'],tg:()=>tutPos('jb')},
  {t:'Open your glass door',d:()=>'Look at the glass door and press Use. Press it again to close it.',k:()=>isTouch?['Use']:['E'],tg:()=>tutPos('door')},
  {t:'Sit on your chair',d:()=>'Go inside, look at the red chair and press Use. You are safe at home.',k:()=>isTouch?['Use']:['E'],tg:()=>tutPos('chair')},
- {t:'Sleep in your bed',d:()=>'Look at the bed in your house and press Use. Sleeping at night skips to morning and gives you lots of aura.',k:()=>isTouch?['Use']:['E'],tg:()=>tutPos('bed')},
  {t:'Turn on your torch',d:()=>'Your torch lights up dark places like caves and night time.',k:()=>isTouch?['Torch']:['T']},
  {t:'Pet Doggy or Mew',d:()=>isTouch?'Look at Doggy or Mew and tap Use.':'Look at Doggy or Mew and click them.',k:()=>isTouch?['Use']:['Click']},
  {t:'Craft a Lamp Table',d:()=>'Open Craft. Wood Block + Lamp makes a Lamp Table.',k:()=>isTouch?['Menu: Craft']:['C']},
@@ -1350,12 +1353,13 @@ const TUT=[
  {t:'Sell your Aura Gem',d:()=>'Open the Shop and sell your Aura Gem for 10 coins.',k:()=>isTouch?['Menu: Shop']:['B']},
  {t:'Aura farm',d:()=>'Stand still and hold the aura button until AURA FARMING pops up.',k:()=>isTouch?['Hold Aura']:['Hold F']},
  {t:'Do the 6 7',d:()=>isTouch?'Tap the 6 7 button.':'Type 6 then 7 quickly.',k:()=>isTouch?['6 7']:['6','7']},
- {t:'Go home',d:()=>'Walk at least 10 blocks away, then go home. The map arrow always points home.',k:()=>isTouch?['Home']:['R']},
  {t:'Visit another isle',d:()=>'Open Isles and fly to Sweet Isle or Funfair Isle. Your house stays saved here.',k:()=>isTouch?['Menu: Isles']:['M']}];
-const EVK=['look','walk','jump','break','bag','place','house','door','sit','sleep','torch','pet','craft','boom','treasure','sell','farm','67','home','world'];
+const EVK=['look','walk','break','bag','place','house','sleep','home','jump','door','sit','torch','pet','craft','boom','treasure','sell','farm','67','world'];
+const EVK_OLD=['look','walk','jump','break','bag','place','house','door','sit','sleep','torch','pet','craft','boom','treasure','sell','farm','67','home','world'];
+const CORE_N=8; // the quick guide is the first 8 steps; the other 12 are optional More tips
 let tut=null,lookAcc=0,tgtBeam=null;
 function tutPos(k){const s=tut&&tut.site;if(!s||curType!==tut.world)return null;
-  if(k==='jb')return{x:s.jb.x+.5,y:s.jb.y,z:s.jb.z+.5};if(k==='house')return{x:s.ox+2,y:s.base+1,z:s.oz+2};if(k==='door')return{x:s.ox+1.5,y:s.base+1,z:s.oz+3.5};
+  if(k==='jb')return s.jb?{x:s.jb.x+.5,y:s.jb.y,z:s.jb.z+.5}:null;if(s.light&&k!=='tnt'&&k!=='tre')return null;if(k==='house')return{x:s.ox+2,y:s.base+1,z:s.oz+2};if(k==='door')return{x:s.ox+1.5,y:s.base+1,z:s.oz+3.5};
   if(k==='chair')return{x:s.ox+2.5,y:s.base+1,z:s.oz+1.5};if(k==='bed')return{x:s.ox+2.5,y:s.base+1,z:s.oz+2.5};if(k==='tnt')return{x:s.tnt.x+.5,y:s.tnt.y,z:s.tnt.z+.5};if(k==='tre')return{x:s.tre.x+.5,y:s.tre.y,z:s.tre.z+.5};return null;}
 function groundOK(x,z){if(x<1||z<1||x>W-2||z>W-2)return false;const t=topH[z*W+x];if(t<2)return false;const w=WORLDS[curType],id=vox[I(x,t,z)];return id===w.top||id===w.sub||id===B.PATH||id===B.SCORCH||id===B.BASALT;}
 function surfaceY(x,z){x=clamp(x,1,W-2);z=clamp(z,1,W-2);return topH[z*W+x]+1;}
@@ -1381,20 +1385,28 @@ function stepEnter(){if(!tut)return;const st=tut.step;tut.cnt=0;lookAcc=0;
   if(EVK[st]==='boom'){clearGhosts('tnt');if((S.inv[B.TNT]||0)<1)give(B.TNT,1);addGhost({x:tut.site.tnt.x,y:tut.site.tnt.y,z:tut.site.tnt.z,id:B.TNT,rot:0},'tnt');}
   if(EVK[st]==='treasure'&&!tut.site.tre)placeTreasure();
   if(EVK[st]==='sell'&&(S.inv[B.DIAMOND]||0)<1)give(B.DIAMOND,1);
+  if(EVK[st]==='jump'){const s=tut.site;if(!s.jb||vox[I(s.jb.x,s.jb.y,s.jb.z)]!==B.WOOD){const g=openGround(clamp(Math.floor(P.x)+2,2,W-3),clamp(Math.floor(P.z)-2,2,W-3));s.jb={x:g.x,y:g.y,z:g.z};setBlock(g.x,g.y,g.z,B.WOOD,0,false);}}
   if(EVK[st]==='home')tut.away=false;}
-function startGuide(){build=null;clearGhosts();tut={on:true,v2:true,step:0,world:curType,site:makeSite(),cnt:0};S.tut=tut;S.tutDone=false;stepEnter();renderQuest(true);persist();}
-function endGuide(done){if(build&&build.kind==='house')build=null;clearGhosts(build?'tnt':undefined);if(done){S.tutDone=true;addCoins(67);setTimeout(()=>{pop('GUIDE COMPLETE!','+67 coins · You know everything now');snd('level');},1200);}tut=null;S.tut=null;renderQuest();persist();}
+function startTips(){build=null;clearGhosts();const sx=Math.floor(spawnPt.x),sz=Math.floor(spawnPt.z);
+  const site=(S.tipSite&&S.tipSite.world===curType)?S.tipSite.site:{light:true,ox:sx,oz:sz,base:Math.floor(spawnPt.y)-1,jb:null,tnt:openGround(clamp(sx+7,2,W-3),clamp(sz-3,2,W-3)),tre:null};
+  tut={on:true,v2:true,v3:true,more:true,step:CORE_N,world:curType,site,cnt:0};S.tut=tut;stepEnter();renderQuest(true);persist();}
+function startGuide(){build=null;clearGhosts();tut={on:true,v2:true,v3:true,step:0,world:curType,site:makeSite(),cnt:0};S.tut=tut;S.tutDone=false;stepEnter();renderQuest(true);persist();}
+function endGuide(done){const more=tut&&tut.more;if(build&&build.kind==='house')build=null;clearGhosts(build?'tnt':undefined);
+  if(done){if(tut&&tut.site&&!tut.site.light)S.tipSite={world:tut.world,site:tut.site};
+    if(more){S.tipsDone=true;S.tutDone=true;setTimeout(()=>{pop('ALL TIPS DONE!','You know everything now');snd('level');},1200);}
+    else{S.tutDone=true;addCoins(67);setTimeout(()=>{pop('GUIDE COMPLETE!','+67 coins · Open Help for 12 more tips');snd('level');},1200);}}
+  tut=null;S.tut=null;renderQuest();persist();}
 function tutEv(ev,arg){if(!tut||!running)return;const st=tut.step;if(EVK[st]!==ev)return;const q=TUT[st];
   if(q.n){tut.cnt=(tut.cnt||0)+1;if(tut.cnt<q.n){renderQuest();return;}}
   if(ev==='home'&&!(arg>=10)){toast('Walk at least 10 blocks away from home first, then try again');return;}
   snd('coin');addAura(5,true);tut.step++;$('quest').classList.remove('flash');void $('quest').offsetWidth;$('quest').classList.add('flash');
-  if(tut.step>=TUT.length){endGuide(true);return;}
+  if(tut.step>=(tut.more?TUT.length:CORE_N)){endGuide(true);return;}
   if(EVK[st]==='boom')clearGhosts('tnt');stepEnter();renderQuest(true);persist();}
 function tutTick(dt){if(!tut||!running||paused)return;const st=tut.step;
   if(EVK[st]==='look'&&lookAcc>2.2)tutEv('look');
   const tg=TUT[st].tg&&TUT[st].tg();
   if(EVK[st]==='walk'&&tg&&Math.hypot(P.x-tg.x,P.z-tg.z)<2.4)tutEv('walk');
-  if(EVK[st]==='jump'){const j=tut.site.jb;if(Math.floor(P.x)===j.x&&Math.floor(P.z)===j.z&&Math.floor(P.y+.002)===j.y+1&&P.ground)tutEv('jump');if(!vox[I(j.x,j.y,j.z)]){tut.step=EVK.indexOf('break');stepEnter();renderQuest(true);}}
+  if(EVK[st]==='jump'){const j=tut.site.jb;if(Math.floor(P.x)===j.x&&Math.floor(P.z)===j.z&&Math.floor(P.y+.002)===j.y+1&&P.ground)tutEv('jump');if(!vox[I(j.x,j.y,j.z)])stepEnter();}
   if(EVK[st]==='home'&&Math.hypot(P.x-spawnPt.x,P.z-spawnPt.z)>=10&&!tut.away){tut.away=true;toast('Far enough! Now go home');}
   // beam over the current target
   if(!tgtBeam){tgtBeam=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,60,10,1,true),new THREE.MeshBasicMaterial({color:0xff5fa2,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,fog:false}));scene.add(tgtBeam);}
@@ -1402,12 +1414,12 @@ function tutTick(dt){if(!tut||!running||paused)return;const st=tut.step;
 const ARROW8=['↑','↗','→','↘','↓','↙','←','↖'];
 function arrowTo(tx,tz){const dx=tx-P.x,dz=tz-P.z,fx=-Math.sin(P.yaw),fz=-Math.cos(P.yaw),fwd=dx*fx+dz*fz,rt=dx*Math.cos(P.yaw)-dz*Math.sin(P.yaw);return ARROW8[((Math.round(Math.atan2(rt,fwd)/(Math.PI/4))%8)+8)%8];}
 function renderQuest(fresh){const el=$('quest');if((!tut&&!build)||!running){el.hidden=true;$('aimTip').hidden=true;return;}el.hidden=false;
-  $('qSkip').textContent=build&&build.kind==='plan'?'Stop building':'Skip guide';
-  if(build){const sg=STAGES[build.stage];$('qStep').textContent=(build.kind==='house'?`Quick guide · ${tut?tut.step+1:7} of ${TUT.length} · `:'House blueprint · ')+`Part ${build.stage+1} of ${STAGES.length}`;
+  $('qSkip').textContent=build&&build.kind==='plan'?'Stop building':tut&&tut.more?'Stop tips':'Skip guide';
+  if(build){const sg=STAGES[build.stage];$('qStep').textContent=(build.kind==='house'?`Quick guide · ${tut?tut.step+1:6} of ${CORE_N} · `:'House blueprint · ')+`Part ${build.stage+1} of ${STAGES.length}`;
     $('qTitle').textContent=sg.name;$('qText').textContent=sg.tip();$('qKeys').innerHTML=(isTouch?['Aim','Place']:['Aim','Right click']).map(k=>`<kbd>${k}</kbd>`).join('');$('qBar').style.width=(build.stage/STAGES.length*100)+'%';updateQuestLive();return;}
   const st=tut.step,q=TUT[st];
-  $('qStep').textContent=`Quick guide · ${st+1} of ${TUT.length}`;$('qTitle').textContent=q.t;$('qText').textContent=q.d();
-  $('qKeys').innerHTML=q.k().map(k=>`<kbd>${k}</kbd>`).join('');$('qBar').style.width=(st/TUT.length*100)+'%';
+  $('qStep').textContent=tut.more?`More tips · ${st-CORE_N+1} of ${TUT.length-CORE_N}`:`Quick guide · ${st+1} of ${CORE_N}`;$('qTitle').textContent=q.t;$('qText').textContent=q.d();
+  $('qKeys').innerHTML=q.k().map(k=>`<kbd>${k}</kbd>`).join('');$('qBar').style.width=((tut.more?(st-CORE_N)/(TUT.length-CORE_N):st/CORE_N)*100)+'%';
   if(fresh&&st>0)snd('pop');updateQuestLive();}
 function updateQuestLive(){if(!running)return;livePic();
   if(build){const all=stageCells(),done=all.filter(cellDone).length,id=nextG?nextG.id:all[0].id;$('qLive').innerHTML=`${done} of ${all.length} placed in this part<br><span class="use"><img src="${icon(id)}" alt="">Block: ${DEF[id].name}</span>`;$('qLive').hidden=false;return;}
@@ -1417,7 +1429,7 @@ function updateQuestLive(){if(!running)return;livePic();
   if(EVK[st]==='home')extra=`${Math.round(Math.hypot(P.x-spawnPt.x,P.z-spawnPt.z))} blocks from home`;
   if(curType!==tut.world&&EVK[st]!=='world')extra=`Go back to ${WORLDS[tut.world].name} to keep going`;
   $('qLive').innerHTML=extra;$('qLive').hidden=!extra;}
-$('qSkip').onclick=()=>{if(build&&build.kind==='plan'){stopBuild();toast('Blueprint removed');return;}endGuide(false);toast('Guide closed. Press G or tap Guide to start it again');};
+$('qSkip').onclick=()=>{if(build&&build.kind==='plan'){stopBuild();toast('Blueprint removed');return;}const m=tut&&tut.more;endGuide(false);toast(m?'Tips closed. Open Help to find More tips again':'Guide closed. Press G or tap Guide to start it again');};
 $('qHide').onclick=()=>{$('quest').classList.toggle('min');$('qHide').textContent=$('quest').classList.contains('min')?'Show':'Hide';};
 // ================= HUD
 function updateHUD(){let hs='';for(let k=0;k<5;k++)hs+=`<span class="${k<P.hearts?'':'off'}">●</span>`;$('hearts').innerHTML=hs;$('coins').textContent=S.coins;
@@ -1480,19 +1492,38 @@ function openShop(){openPanel('Shop',body=>{const draw=()=>{const d=S.inv[B.DIAM
 function openWorlds(){openPanel('Isles',body=>{body.innerHTML='<p class="sub">Fly to another set of isles. Your builds on each are saved.</p>';
   for(const k in WORLDS){const w=WORLDS[k];const row=document.createElement('div');row.className='row';row.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(${w.strata.join(',')})"></div><div class="grow">${w.name}${k===curType?' (you are here)':''}<small>${w.blurb}</small></div>`;
     const b=document.createElement('button');b.className='btn gold';b.textContent=k===curType?'Here':'Go';b.disabled=k===curType;b.onclick=()=>{closePanel();toast(`Going to ${w.name}…`);setTimeout(()=>{loadWorld(k);persist();pop(w.name.toUpperCase(),'Welcome!');tutEv('world');},40);};row.appendChild(b);body.appendChild(row);}});}
-function openHelp(){openPanel('How to play',body=>{body.innerHTML=`<div class="keys">
+const VERSION='2026.11-w2',FB_URL='https://refinery-five.vercel.app/api/feedback';
+const FB={praise:{label:'I love it',q:'What do you love?',r:['Building','My pet','The isles','The animals and Isle Folk','Everything!']},
+  confusing:{label:'Something is hard',q:'What is hard?',r:['Turning and looking','Placing or breaking blocks','Doors or furniture','I got lost','I don\'t know what to do next','The guide is too long']},
+  bug:{label:'Bug',q:'What went wrong?',r:['I got stuck','A block won\'t place','My pet got in the way','Something looks wrong','The game froze or went slow','My world didn\'t save']}};
+let fbSent=0;
+// Sends only the pick, the game version and the isle. No name, no typed text.
+function sendFeedback(kind,reason){fbSent++;const body=JSON.stringify({product:'aura-isles',kind,title:`${FB[kind].label}: ${reason}`,details:`Sent from the game's Tell us button. Version ${VERSION}. Isle: ${WORLDS[curType]?WORLDS[curType].name:'none'}.`,device:isTouch?'Touch screen':'Computer',name:''});
+  try{fetch(FB_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body}).catch(()=>{});}catch(e){}}
+function openTell(){openPanel('Tell us',body=>{const big='display:block;width:100%;margin:8px 0;padding:14px;font-size:16px;text-align:left';
+  const first=()=>{body.innerHTML=`<p class="sub">How is the game? Pick one. We only get your pick, the game version and the isle you are on. No name.</p>`+Object.keys(FB).map(k=>`<button class="btn" data-k="${k}" style="${big}">${FB[k].label}</button>`).join('')+`<p class="sub" style="margin-top:12px">Aura Isles ${VERSION}</p>`;
+    body.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>second(b.dataset.k));};
+  const second=k=>{body.innerHTML=`<p class="sub">${FB[k].q}</p>`+FB[k].r.map((r,i)=>`<button class="btn" data-i="${i}" style="${big}">${r}</button>`).join('')+`<button class="btn" id="fbBack" style="margin-top:8px">Back</button>`;
+    body.querySelector('#fbBack').onclick=first;body.querySelectorAll('button[data-i]').forEach(b=>b.onclick=()=>{if(fbSent>=5){body.innerHTML='<p class="sub">Thank you! You have sent lots of notes today. Come back and tell us more next time.</p>';return;}
+      sendFeedback(k,FB[k].r[+b.dataset.i]);body.innerHTML='<h3 style="font-family:var(--display);font-weight:400;color:var(--aura);margin:10px 0">Thank you!</h3><p class="sub">Your note is on its way to the game makers.</p><button class="btn gold" id="fbMore">Tell us something else</button>';body.querySelector('#fbMore').onclick=first;snd('coin');});};
+  first();});}
+function openTips(){openPanel('More tips',body=>{body.innerHTML=`<p class="sub">12 extra things to try. Read them here, or practise them one by one.</p><button class="btn gold" id="tipsGo">Practise these one by one</button><div class="keys" style="margin-top:14px">`+TUT.slice(CORE_N).map(q=>`<b>${q.t}</b><span>${q.d()} <i>(${q.k().join(', ')})</i></span>`).join('')+'</div>';
+  body.querySelector('#tipsGo').onclick=()=>{closePanel();startTips();toast('More tips started');};});}
+function openHelp(){openPanel('How to play',body=>{body.innerHTML=`<div class="keys"><b>Look speed</b><span id="lookSp"></span></div><div class="keys">
   <b>Move</b><span>W A S D or arrow keys (left stick on a tablet)</span><b>Look and turn</b><span>Mouse, the left and right arrow keys, or drag the screen. On a tablet, pushing the stick left or right turns you</span>
   <b>Break</b><span>Left click. Hit zombies the same way</span><b>Place</b><span>Right click</span><b>Jump / swim</b><span>Space</span><b>Run</b><span>Shift</span>
   <b>Use (E)</b><span>Sit on chairs, sleep in beds, open glass doors, light TNT, open bookshelves and treasure, pet animals, trade with villagers</span>
   </div><div class="build"><h3 style="font-family:var(--display);font-weight:400;color:var(--pink);margin:14px 0 6px">How to build a house</h3>
   <p class="sub">To place a block, aim at the top or side of a block that is already there and right click (tap Place). The new block sticks to the side you aimed at. Build in this order:</p>
   <div class="strip" id="strip"></div>
-  <button class="btn gold" id="planBtn">Build this house here, step by step</button> <button class="btn" id="guideBtn">Start the quick guide</button></div><div class="keys" style="margin-top:14px">
+  <button class="btn gold" id="planBtn">Build this house here, step by step</button> <button class="btn" id="guideBtn">Start the quick guide</button> <button class="btn" id="tipsBtn">More tips (12)</button></div><div class="keys" style="margin-top:14px">
   <b>Stuck?</b><span>Hold Space (Jump) while walking into a wall to climb up it. You can also place a block under your feet while looking down to build yourself up</span><b>Go home (R)</b><span>Takes you back to where you started. The yellow beam of light shows where home is, and you come back there if you faint</span><b>Map</b><span>Top left. You are the white arrow, home is the yellow square, Doggy and Mew are pink, zombies are red. Tap the map to hide it</span><b>Torch (T)</b><span>Turn your torch on and off to see in the dark and in caves</span><b>Aura farm (F)</b><span>Hold still and hold F to farm aura</span><b>6 7</b><span>Type 6 then 7 quickly</span>
   <b>Q · C · B · M</b><span>Blocks, Craft, Shop, Worlds</span></div>
   <p class="sub" style="margin-top:14px"><b>Isle Folk:</b> every isle has a little town (green house on the map) linked by a rainbow bridge. Press E on one of the Isle Folk to see their shop, and sell Aura Gems for 12 coins. <b>Creatures:</b> click to pet them for aura. <b>Fizz Pops</b> are fizzy candy balls: tap one and it bursts into confetti and coins. <b>Dream Pods:</b> dream at night to skip to morning and get +25 aura. <b>Bounce Pads:</b> jump on them to fly up high. <b>Falling off?</b> A cloud catches you and carries you back.</p><p class="sub">Gloomies are shadow puffs that drift in at night. Shine your torch on them, or tap them, and they turn into friendly glow-sprites. A house with a roof keeps them out, and Doggy and Mew calm them for you too. Treasure sits on the tiny floating rocks and in the sun temples. Crystal Nodes grow under the islands and give Aura Gems.</p>`;const strip=body.querySelector('#strip');STAGES.forEach((sg,i)=>{const f=document.createElement('figure');const cv=document.createElement('canvas');cv.width=300;cv.height=130;f.appendChild(cv);const cap=document.createElement('figcaption');cap.innerHTML=`<b>${i+1}. ${sg.name}</b>${['A square of Concrete, 4 by 4. Leave a gap at the front for the door.','Another row on top. Use Glass Rock for windows.','Walk in through the gap. Add a Lamp, a Chair and a Bed.','Wood across the top. Reach it from inside.','2 Glass Rock blocks in the gap. Press E to open it.'][i]}`;f.appendChild(cap);strip.appendChild(f);drawPic(cv,c=>{const k=STAGE_OF[c.part];return k<i?'done':k===i?'next':'future';},sg.layer);});
-  body.querySelector('#planBtn').onclick=showPlan;body.querySelector('#guideBtn').onclick=()=>{closePanel();startGuide();};});}
-$('bBag').onclick=openBag;$('bCraft').onclick=openCraft;$('bShop').onclick=openShop;$('bWorlds').onclick=openWorlds;$('bHelp').onclick=openHelp;$('bTorch').onclick=toggleTorch;$('bHome').onclick=goHome;$('bGuide').onclick=()=>{startGuide();toast('Guide started from step 1');};$('mapBox').onclick=()=>{$('mapBox').classList.toggle('small');};
+  body.querySelector('#planBtn').onclick=showPlan;body.querySelector('#guideBtn').onclick=()=>{closePanel();startGuide();};body.querySelector('#tipsBtn').onclick=openTips;
+  const ls=body.querySelector('#lookSp'),drawLs=()=>{ls.innerHTML=[['Slow',.6],['Normal',1],['Fast',1.5]].map(([n,v])=>`<button class="btn${(S.look||1)===v?' gold':''}" data-v="${v}" style="padding:4px 12px;margin-right:6px">${n}</button>`).join('')+' How fast you turn and look';ls.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.look=+b.dataset.v;persist();drawLs();});};drawLs();
+  const v=document.createElement('p');v.className='sub';v.style.marginTop='14px';v.textContent='Aura Isles '+VERSION;body.appendChild(v);});}
+$('bBag').onclick=openBag;$('bCraft').onclick=openCraft;$('bShop').onclick=openShop;$('bWorlds').onclick=openWorlds;$('bHelp').onclick=openHelp;$('bTell').onclick=openTell;$('ver').textContent='Aura Isles '+VERSION;$('bTorch').onclick=toggleTorch;$('bHome').onclick=goHome;$('bGuide').onclick=()=>{startGuide();toast('Guide started from step 1');};$('mapBox').onclick=()=>{$('mapBox').classList.toggle('small');};
 function syncSound(){$('bSound').textContent=S.muted?'Sound off':'Sound on';}$('bSound').onclick=()=>{S.muted=!S.muted;syncSound();if(!S.muted)snd('pop');};syncSound();
 
 // ================= sound
@@ -1512,7 +1543,7 @@ function requestLock(){if(isTouch)return;try{const p=cv.requestPointerLock();if(
 function exitLock(){try{if(locked())document.exitPointerLock();}catch(e){}}
 document.addEventListener('pointerlockerror',()=>{lockFailed=true;updateHint();});document.addEventListener('pointerlockchange',updateHint);
 function updateHint(){const h=$('hint');if(!running||paused||isTouch||locked()){h.hidden=true;return;}h.hidden=false;h.textContent=lockFailed?'Drag to look · click to break · right click to place':'Click the world to look around';}
-function look(dx,dy,s){lookAcc+=Math.abs(dx*s)+Math.abs(dy*s);P.yaw-=dx*s;P.pitch=clamp(P.pitch-dy*s,-1.55,1.55);}
+function look(dx,dy,s){s*=S.look||1;lookAcc+=Math.abs(dx*s)+Math.abs(dy*s);P.yaw-=dx*s;P.pitch=clamp(P.pitch-dy*s,-1.55,1.55);}
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{if(!running||paused)return;snd('');
   if(e.pointerType==='touch'){if(lookId===null){lookId=e.pointerId;lx=e.clientX;ly=e.clientY;}return;}
@@ -1554,7 +1585,7 @@ for(const k in WORLDS){const w=WORLDS[k];const b=document.createElement('button'
   b.onclick=()=>start(k);pick$.appendChild(b);}
 function start(k){snd('');pick$.hidden=true;$('loading').hidden=false;setTimeout(()=>{loadWorld(k);$('title').hidden=true;$('hud').hidden=false;$('cross').hidden=false;$('touch').hidden=!isTouch;running=true;renderHotbar();updateHUD();updateHint();
   pop(WORLDS[k].name.toUpperCase(),'The yellow beam marks your home');
-  if(S.tut&&S.tut.on){tut=S.tut;if(!tut.v2){tut.v2=true;if(tut.step>=9)tut.step++;}stepEnter();renderQuest(true);}else if(!S.tutDone)setTimeout(startGuide,600);else setTimeout(()=>toast(isTouch?'Tip: tap Guide to replay the quick guide':'Tip: press G to replay the quick guide, H for help'),2200);},50);}
+  if(S.tut&&S.tut.on){tut=S.tut;if(!tut.v2){tut.v2=true;if(tut.step>=9)tut.step++;}if(!tut.v3){tut.v3=true;tut.step=Math.max(0,EVK.indexOf(EVK_OLD[tut.step]));if(tut.step>=CORE_N)tut.more=true;}stepEnter();renderQuest(true);}else if(!S.tutDone)setTimeout(startGuide,600);else setTimeout(()=>toast(isTouch?'Tip: tap Guide to replay the quick guide':'Tip: press G to replay the quick guide, H for help'),2200);},50);}
 
 // ================= resize & loop
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();const d=Math.min(window.devicePixelRatio||1,1.5);fx.width=w*d|0;fx.height=h*d|0;fx._dpr=d;fxDirty=true;}
