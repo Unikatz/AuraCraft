@@ -37,4 +37,18 @@ something crosses a line set in `CHARTER.md`.
 4. Push `preview` to `main`. Vercel publishes it.
 5. Add the release to `CHANGELOG.md` and update `DECISIONS.md`.
 
-Rollback: push `stable` to `main`.
+## Rollback
+
+`stable` always holds the version that was live before the latest release. To roll back,
+make a new commit on `main` that puts the game file back, then push it. Never force-push.
+
+```
+git fetch origin main stable
+git checkout -B rollback origin/main
+git checkout origin/stable -- index.html
+git commit -m "Roll back the game to the stable version"
+git push origin rollback:main
+```
+
+Players keep their saves: the save format is the same in both versions.
+Afterwards, tell the owner the same day and note it in `DECISIONS.md`.
