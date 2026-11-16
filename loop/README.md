@@ -25,6 +25,7 @@ something crosses a line set in `CHARTER.md`.
 - `CHARTER.md`: what the Approver may decide and what must go to the owner.
 - `DECISIONS.md`: every decision, who made it, and its status.
 - `FEEDBACK.md`: tester feedback seen so far and what happened to it.
+- `BACKLOG.md`: decided work kept for a later sprint. The Friday review moves the coming sprint's items into its proposal.
 - `proposals/`: one weekly proposal per Friday.
 - `../CHANGELOG.md`: what changed in each release.
 - `../tests/`: checks run before every build (`bash tests/run.sh`).
