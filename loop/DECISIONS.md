@@ -4,6 +4,8 @@ Newest first. Status: Backlog (decided, kept for a later sprint, see `BACKLOG.md
 
 | Date | Item | Decided by | Decision | Status |
 | --- | --- | --- | --- | --- |
+| 16 Nov 2026 | Every release must be possible to roll back | Owner | Standing rule. Rollback check added to `bash tests/run.sh` (save round trip with `stable`, and no placeable block that `stable` lacks). New blocks ship unplaceable first. Not yet written into `CHARTER.md`: the owner adds it there | In force from 16 Nov |
+| 16 Nov 2026 | Rollback test (R1) | Owner | Done 16 Nov: today's live build and `stable` swap saves both ways with no errors and nothing lost. A block that `stable` does not know makes that world fail to open in `stable`, so new blocks must ship unplaceable first | Done |
 | 16 Nov 2026 | Healthy play: eye and stretch break, evening wind-down, daily play total, tips for grown-ups (H1 to H4) | Owner | Add to the backlog for the sprint from 20 Nov. Details in `BACKLOG.md` | Backlog: sprint from 20 Nov |
 | 14 Nov 2026 | Wood Door (escalated 13 Nov) | Owner | Option b: one Wood Door in a later week, after the dev tests and reports what happens to a world with new blocks when the game is rolled back (R1 in `BACKLOG.md`). Reply by email | On hold until the rollback test is reported |
 | 13 Nov 2026 | Wood Door (doors in other materials) | Approver | Escalated to the owner: direction of the game (closer to Minecraft) and an untested rollback risk to saved worlds. Options: a. not now, b. one Wood Door in a later week after a rollback test, c. more doors but in the game's own style. Approver recommends a. Reply by 17 Nov | Owner decided 14 Nov (option b) |

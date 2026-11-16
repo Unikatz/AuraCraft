@@ -32,7 +32,8 @@ something crosses a line set in `CHARTER.md`.
 
 ## Release steps
 
-1. `bash tests/run.sh` passes on `preview`.
+1. `bash tests/run.sh` passes on `preview` (run `git fetch origin stable` first). This includes the
+   rollback check: a save made by the new build must load in `stable` with nothing lost, and back again.
 2. Approver says "release" (or the owner does).
 3. Push the current `main` to `stable`.
 4. Push `preview` to `main`. Vercel publishes it.
@@ -46,10 +47,16 @@ make a new commit on `main` that puts the game file back, then push it. Never fo
 ```
 git fetch origin main stable
 git checkout -B rollback origin/main
-git checkout origin/stable -- index.html
+git checkout origin/stable -- index.html vercel.json
 git commit -m "Roll back the game to the stable version"
 git push origin rollback:main
 ```
 
-Players keep their saves: the save format is the same in both versions.
+Players keep their saves. This is checked before every release by `tests/rollback.js` (part of
+`bash tests/run.sh`), not assumed. How releases stay rollback-safe:
+
+- A new block ships first as not placeable (`noplace:true`). Only the next release makes it
+  placeable, after `stable` knows it. Otherwise a world holding the block will not open in `stable`.
+- Block ids are never removed or reused.
+- Saved settings and fields are only added, never renamed, removed or given a new meaning.
 Afterwards, tell the owner the same day and note it in `DECISIONS.md`.

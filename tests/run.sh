@@ -4,7 +4,7 @@
 cd "$(dirname "$0")" || exit 1
 node build-harness.js || exit 1
 fail=0
-for t in guide sleep-house-bounce place-home frames-save turn fall; do
+for t in guide sleep-house-bounce place-home frames-save turn fall rollback; do
   out=$(timeout 180 node "$t.js" 2>&1); code=$?
   if [ $code -ne 0 ] || echo "$out" | grep -q "^FAIL\|Error:\|    at "; then
     echo "FAILED: $t"; echo "$out" | tail -15; fail=1

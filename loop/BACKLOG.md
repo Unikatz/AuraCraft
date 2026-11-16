@@ -38,7 +38,8 @@ Open points for the Friday review to raise, not to decide by default:
 
 | # | Item | What it does | Rough size |
 | --- | --- | --- | --- |
-| R1 | Rollback test | Load a saved world that holds new blocks (Wood Table, Pet House) in the `stable` version and report what happens. Needed before the Wood Door, and it answers the Approver's warning about rollback. | About half a day |
+| R1 | Rollback test | Done 16 Nov, now part of `bash tests/run.sh` as `tests/rollback.js`. Result: the live build and `stable` swap saves both ways with nothing lost (the Wood Table and Pet House are already in `stable`). A block `stable` does not know stops that world from opening in `stable`. | Done |
+| R2 | Unknown blocks never crash a world | If a save holds a block this version does not know, show it as a plain placeholder block and keep it in the save, instead of failing to open the world. Extra protection on top of the "new blocks ship unplaceable first" rule. Owner request (rollback safety). | About half a day, test included |
 
 ## Later: bigger than one week or a change of direction
 
@@ -47,4 +48,4 @@ These need shaping and an owner decision before they can enter a sprint.
 - Trader's Ledger: shop maths (unit prices, budgets, profit) through the Isle Folk shops, with an
   optional paper ledger for grown-ups to print. This moves the game towards a learning game,
   which is the owner's call on direction, and it is more than one week of work.
-- Wood Door: after R1 is reported (owner chose option b on 13 Nov).
+- Wood Door: R1 is done. Under the rollback rule it takes two releases: first the block ships unplaceable, then a later release makes it placeable. Owner chose option b on 13 Nov.
