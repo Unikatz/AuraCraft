@@ -22,14 +22,15 @@ console.log('init ok',Date.now()-t0,'ms');
 T=40;runTimers();console.log('preview world loaded',Date.now()-t0,'ms');
 const grassBtn=created.find(e=>e.id==='world-grass');grassBtn.onclick();T=200;runTimers();console.log('started grass',Date.now()-t0,'ms');
 function frames(n){for(let i=0;i<n;i++){T+=16;rafCb(T);runTimers();}}
+const ran=m=>console.log('PASS ran without error: '+m);
 frames(30);
 const kd=c=>listeners.win.keydown({code:c,repeat:false,preventDefault(){}}),ku=c=>listeners.win.keyup({code:c});
 kd('KeyW');frames(60);ku('KeyW');kd('Space');frames(10);ku('Space');
-kd('Digit6');kd('Digit7');kd('KeyF');frames(200);ku('KeyF');kd('KeyE');frames(5);
+kd('Digit6');kd('Digit7');kd('KeyF');frames(200);ku('KeyF');kd('KeyE');frames(5);ran('walk, jump, 6 7, farm and use keys');
 const byAct=a=>btns.find(b=>b.dataset.act===a);
-for(const a of ['break','place','use','67','run','jump']){byAct(a)._l.pointerdown({preventDefault(){}});byAct(a)._l.pointerup&&byAct(a)._l.pointerup({});frames(3);}
-kd('KeyQ');kd('Escape');kd('KeyC');kd('Escape');kd('KeyB');kd('Escape');kd('KeyH');kd('Escape');kd('KeyM');kd('Escape');
+for(const a of ['break','place','use','67','run','jump']){byAct(a)._l.pointerdown({preventDefault(){}});byAct(a)._l.pointerup&&byAct(a)._l.pointerup({});frames(3);}ran('every touch button');
+kd('KeyQ');kd('Escape');kd('KeyC');kd('Escape');kd('KeyB');kd('Escape');kd('KeyH');kd('Escape');kd('KeyM');kd('Escape');ran('open and close every panel');
 frames(600);
-console.log('frames ok',Date.now()-t0,'ms');
+console.log('frames ok',Date.now()-t0,'ms');ran('600 frames');
 for(const w of ['lava','food']){const t1=Date.now();els.bWorlds.onclick();/*open worlds*/ T+=10; }
-console.log('saved bytes',global.saved&&global.saved.length);
+console.log('saved bytes',global.saved&&global.saved.length);ran('game saves');

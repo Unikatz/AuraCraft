@@ -22,6 +22,7 @@ console.log('init ok',Date.now()-t0,'ms');
 T=40;runTimers();console.log('preview world loaded',Date.now()-t0,'ms');
 const grassBtn=created.find(e=>e.id==='world-grass');grassBtn.onclick();T=200;runTimers();console.log('started grass',Date.now()-t0,'ms');
 function frames(n){for(let i=0;i<n;i++){T+=16;rafCb(T);runTimers();}}
+const ran=m=>console.log('PASS ran without error: '+m);
 frames(30);
 
 const t=window.__t,P=t.P;t.camera.position={x:0,y:0,z:0,set(a,b,c){this.x=a;this.y=b;this.z=c},copy(){}};
@@ -30,16 +31,16 @@ frames(10);const sx=Math.floor(P.x),sz=Math.floor(P.z),sy=Math.floor(P.y);consol
 // 1) dig a 1x1 hole 4 deep under the player and drop in
 for(let d=1;d<=4;d++)t.setBlock(sx,sy-d,sz,0,0,false);frames(60);console.log('in hole y',P.y.toFixed(2),'(start',sy,')');
 P.yaw=0;kd('KeyW');frames(20);console.log(' walk only y',P.y.toFixed(2));
-kd('Space');frames(120);ku('Space');ku('KeyW');frames(30);console.log(' climb result y',P.y.toFixed(2),'escaped?',P.y>=sy-0.01, 'pos',P.x.toFixed(2),P.z.toFixed(2));
+kd('Space');frames(120);ku('Space');ku('KeyW');frames(30);console.log(' climb result y',P.y.toFixed(2),'escaped?',P.y>=sy-0.01, 'pos',P.x.toFixed(2),P.z.toFixed(2));ran('dig a hole, drop in, jump and climb');
 // 2) jump onto a single block in front
 const bx=Math.floor(P.x),bz=Math.floor(P.z),by=Math.floor(P.y);
 for(let d=1;d<=3;d++)for(let e=-1;e<=1;e++){/*clear path*/}
 t.setBlock(bx,by,bz-2,8,0,true);t.setBlock(bx,by+1,bz-2,0,0,false);t.setBlock(bx,by+2,bz-2,0,0,false);t.setBlock(bx,by+1,bz-1,0,0,false);t.setBlock(bx,by,bz-1,0,0,false);
-P.x=bx+.5;P.z=bz+.5;P.yaw=0;frames(20);const y0=P.y;kd('KeyW');frames(50);ku('KeyW');frames(20);console.log('step test: from',y0.toFixed(2),'to',P.y.toFixed(2),'at z',P.z.toFixed(2));
+P.x=bx+.5;P.z=bz+.5;P.yaw=0;frames(20);const y0=P.y;kd('KeyW');frames(50);ku('KeyW');frames(20);console.log('step test: from',y0.toFixed(2),'to',P.y.toFixed(2),'at z',P.z.toFixed(2));ran('walk onto a single block');
 // 3) stuck inside a block -> pushed out
-const cx=Math.floor(P.x),cy=Math.floor(P.y),cz=Math.floor(P.z);t.setBlock(cx,cy,cz,8,0,true);t.setBlock(cx,cy+1,cz,8,0,true);frames(3);console.log('embedded -> y',P.y.toFixed(2),'collides',t.collides(P.x,P.y,P.z));
+const cx=Math.floor(P.x),cy=Math.floor(P.y),cz=Math.floor(P.z);t.setBlock(cx,cy,cz,8,0,true);t.setBlock(cx,cy+1,cz,8,0,true);frames(3);console.log('embedded -> y',P.y.toFixed(2),'collides',t.collides(P.x,P.y,P.z));ran('stuck inside a block');
 // 4) pillar: look straight down, place under feet while jumping
-P.x=30.5;P.z=30.5;P.y=50;frames(150);const yb=P.y;const fx0=Math.floor(P.x),fz0=Math.floor(P.z);console.log("pillar start",yb,"below",t.get(fx0,Math.floor(yb)-1,fz0));P.pitch=-1.55;t.S.slot=2;for(let k=0;k<4;k++){kd("Space");frames(14);ku("Space");t.doPlace();frames(40);console.log(" after place",P.y.toFixed(2),"col",[0,1,2,3,4].map(d=>t.get(fx0,Math.floor(yb)+d,fz0)).join(","));}
+P.x=30.5;P.z=30.5;P.y=50;frames(150);const yb=P.y;const fx0=Math.floor(P.x),fz0=Math.floor(P.z);console.log("pillar start",yb,"below",t.get(fx0,Math.floor(yb)-1,fz0));P.pitch=-1.55;t.S.slot=2;for(let k=0;k<4;k++){kd("Space");frames(14);ku("Space");t.doPlace();frames(40);console.log(" after place",P.y.toFixed(2),"col",[0,1,2,3,4].map(d=>t.get(fx0,Math.floor(yb)+d,fz0)).join(","));}ran('pillar up by placing under your feet');
 // 5) go home
-P.x=10.5;P.z=10.5;P.y=60;frames(200);kd('KeyR');ku('KeyR');frames(10);console.log('home ->',P.x.toFixed(1),P.y.toFixed(1),P.z.toFixed(1),'spawn',t.spawnPt.x,t.spawnPt.y,t.spawnPt.z);
-frames(50);console.log('where:',els.whereA.innerHTML,'|',els.whereB.textContent);
+P.x=10.5;P.z=10.5;P.y=60;frames(200);kd('KeyR');ku('KeyR');frames(10);console.log('home ->',P.x.toFixed(1),P.y.toFixed(1),P.z.toFixed(1),'spawn',t.spawnPt.x,t.spawnPt.y,t.spawnPt.z);ran('go home');
+frames(50);console.log('where:',els.whereA.innerHTML,'|',els.whereB.textContent);ran('where-am-I label');

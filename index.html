@@ -1015,8 +1015,8 @@ function raycast(ox,oy,oz,dx,dy,dz,max){let x=Math.floor(ox),y=Math.floor(oy),z=
   const tdx=Math.abs(1/dx),tdy=Math.abs(1/dy),tdz=Math.abs(1/dz);let tmx=dx?(dx>0?x+1-ox:ox-x)*tdx:Infinity,tmy=dy?(dy>0?y+1-oy:oy-y)*tdy:Infinity,tmz=dz?(dz>0?z+1-oz:oz-z)*tdz:Infinity;
   let px=x,py=y,pz=z,t=0;for(let k=0;k<80;k++){const id=get(x,y,z);if(id&&DEF[id].target)return{x,y,z,px,py,pz,id,t};px=x;py=y;pz=z;
     if(tmx<tmy){if(tmx<tmz){x+=sx;t=tmx;tmx+=tdx;}else{z+=sz;t=tmz;tmz+=tdz;}}else{if(tmy<tmz){y+=sy;t=tmy;tmy+=tdy;}else{z+=sz;t=tmz;tmz+=tdz;}}if(t>max)return null;}return null;}
-function pick(noGhost){const o=camera.position,d=dirVec();let bt=reach;const blk=raycast(o.x,o.y,o.z,d.x,d.y,d.z,reach);if(blk)bt=blk.t;let mob=null;
-  for(const m of mobs){const cy=m.y+m.parts.hc,r=m.parts.hr,ox=m.x-o.x,oy=cy-o.y,oz=m.z-o.z,t=ox*d.x+oy*d.y+oz*d.z;if(t<0||t>bt)continue;
+function pick(noGhost,skipPets){const o=camera.position,d=dirVec();let bt=reach;const blk=raycast(o.x,o.y,o.z,d.x,d.y,d.z,reach);if(blk)bt=blk.t;let mob=null;
+  for(const m of mobs){if(skipPets&&isPet(m))continue;const cy=m.y+m.parts.hc,r=m.parts.hr,ox=m.x-o.x,oy=cy-o.y,oz=m.z-o.z,t=ox*d.x+oy*d.y+oz*d.z;if(t<0||t>bt)continue;
     const ex=ox-d.x*t,ey=oy-d.y*t,ez=oz-d.z*t;if(ex*ex+ey*ey+ez*ez<r*r){bt=t;mob=m;}}
   if(!noGhost&&!mob){const gh=rayGhost();if(gh&&gh.t<bt)return{ghost:gh.g};}
   return mob?{mob}:blk?{blk}:null;}
@@ -1037,13 +1037,21 @@ function mobAction(m,how){const k=m.kind;
   if(k==='villager'){if(how==='hit'){m.flash=.15;toast(`${m.opt.nm}: Hey, that tickles! Press ${isTouch?'Use':'E'} to trade`);}else openTrade(m);return;}
   petPet(m);}
 function give(id,n){S.inv[id]=(S.inv[id]||0)+n;renderHotbar();}
-function doPlace(){if(P.dead)return;const h=pick();if(!h)return;if(h.ghost){placeGhost(h.ghost);return;}if(h.mob){mobAction(h.mob,'use');return;}
+// a pet in the way hops to the nearest free square beside it; false if it has no room
+function petHop(m,px,py,pz){const fy=Math.floor(m.y+.05);let best=null,bd=1e9;
+  for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const x=px+dx,z=pz+dz;if(x<0||z<0||x>=W||z>=W)continue;
+    for(const dy of[0,1,-1]){const y=fy+dy;if(y<1||y+1>=H||solidAt(x,y,z)||solidAt(x,y+1,z)||!solidAt(x,y-1,z))continue;
+      if(x<P.x+.3&&x+1>P.x-.3&&z<P.z+.3&&z+1>P.z-.3&&y<P.y+P.h&&y+1>P.y)continue;
+      if(mobs.some(o=>o!==m&&Math.floor(o.x)===x&&Math.floor(o.z)===z&&Math.abs(o.y-y)<1.5))continue;
+      const dd=(x+.5-m.x)**2+(z+.5-m.z)**2+Math.abs(dy)*.5;if(dd<bd){bd=dd;best=[x,y,z];}break;}}
+  if(!best)return false;m.nap=null;m.x=best[0]+.5;m.y=best[1];m.z=best[2]+.5;m.vx=m.vz=0;m.vy=3;m.ground=false;burst(m.x,m.y+.6,m.z,[1,.85,.5],6,2,.5,2);return true;}
+function doPlace(){if(P.dead)return;const h=pick(false,!!held());if(!h)return;if(h.ghost){placeGhost(h.ghost);return;}if(h.mob){mobAction(h.mob,'use');return;}
   const id=held();if(!have(id)){toast(`You don't have any ${DEF[id].name}. Open Blocks (Q) to pick another`);return;}
   const{px,py,pz}=h.blk;if(px<0||pz<0||px>=W||pz>=W||py<0||py>=H)return;const cur=vox[I(px,py,pz)];if(cur&&!FLUID[cur])return;
   let lift=false;
   if(SOLID[id]&&px<P.x+.3&&px+1>P.x-.3&&pz<P.z+.3&&pz+1>P.z-.3&&py<P.y+P.h&&py+1>P.y){
     if(py===Math.floor(P.y+.002)&&!collides(P.x,py+1,P.z))lift=true;else return;}
-  for(const m of mobs)if(SOLID[id]&&Math.floor(m.x)===px&&Math.floor(m.z)===pz&&(Math.floor(m.y)===py||Math.floor(m.y+1)===py))return;
+  for(const m of mobs)if(SOLID[id]&&Math.floor(m.x)===px&&Math.floor(m.z)===pz&&(Math.floor(m.y)===py||Math.floor(m.y+1)===py)){if(!isPet(m)||!petHop(m,px,py,pz)){toast('Something is in the way');return;}}
   let rot=0;if(DEF[id].shape==='chair'||DEF[id].shape==='bed'||DEF[id].shape==='pet'){const d=dirVec();rot=Math.abs(d.x)>Math.abs(d.z)?(d.x>0?1:3):(d.z>0?2:0);}
   if(id===B.PET_HOUSE){placePetHouse(px,py,pz,rot);return;}
   setBlock(px,py,pz,id,rot,true);snd('place');if(lift){P.y=py+1;P.vy=0;P.ground=true;}tutEv('place');if(LIMITED.has(id)){S.inv[id]--;renderHotbar();}if(Math.random()<.5)addAura(1,true);}
@@ -1060,8 +1068,11 @@ function doUse(){if(P.dead)return;if(P.sit){standUp();return;}const h=pick(true)
   if(h.mob){mobAction(h.mob,'use');return;}
   const{x,y,z,id}=h.blk,i=I(x,y,z);
   if(DEF[id].shape==='chair'){P.sit={x,y,z};P.x=x+.5;P.z=z+.5;P.y=y+.42;P.vy=0;toast('Sitting down. Move or press E to stand up');tutEv('sit');return;}
-  if(id===B.GLASS){setBlock(x,y,z,B.GLASS_OPEN,0,wd.p.has(i));snd('pop');toast('Glass door opened');tutEv('door');return;}
-  if(id===B.GLASS_OPEN){if(x<P.x+.3&&x+1>P.x-.3&&z<P.z+.3&&z+1>P.z-.3&&y<P.y+P.h&&y+1>P.y){toast('Step out of the doorway first');return;}setBlock(x,y,z,B.GLASS,0,true);snd('pop');toast('Glass door closed');return;}
+  if(id===B.GLASS||id===B.GLASS_OPEN){// a 2-high glass door works with one press: only the one glass block below (or else above) moves with it
+    const isG=v=>v===B.GLASS||v===B.GLASS_OPEN,py2=isG(get(x,y-1,z))?y-1:isG(get(x,y+1,z))?y+1:-1,ys=py2<0?[y]:[y,py2];
+    if(id===B.GLASS){for(const yy of ys)if(get(x,yy,z)===B.GLASS)setBlock(x,yy,z,B.GLASS_OPEN,0,wd.p.has(I(x,yy,z)));snd('pop');toast('Glass door opened');tutEv('door');return;}
+    if(ys.some(yy=>x<P.x+.3&&x+1>P.x-.3&&z<P.z+.3&&z+1>P.z-.3&&yy<P.y+P.h&&yy+1>P.y)){toast('Step out of the doorway first');return;}
+    for(const yy of ys)if(get(x,yy,z)===B.GLASS_OPEN)setBlock(x,yy,z,B.GLASS,0,true);snd('pop');toast('Glass door closed');return;}
   if(id===B.TNT||id===B.MINI_TNT){lightFuse(x,y,z,id,id===B.TNT?2.6:1.8);toast('Party Popper! Stand back for confetti!');return;}
   if(id===B.SHELF){openShelf(i);return;}
   if(id===B.TREASURE){openTreasure(x,y,z);return;}
@@ -1492,7 +1503,7 @@ function openShop(){openPanel('Shop',body=>{const draw=()=>{const d=S.inv[B.DIAM
 function openWorlds(){openPanel('Isles',body=>{body.innerHTML='<p class="sub">Fly to another set of isles. Your builds on each are saved.</p>';
   for(const k in WORLDS){const w=WORLDS[k];const row=document.createElement('div');row.className='row';row.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(${w.strata.join(',')})"></div><div class="grow">${w.name}${k===curType?' (you are here)':''}<small>${w.blurb}</small></div>`;
     const b=document.createElement('button');b.className='btn gold';b.textContent=k===curType?'Here':'Go';b.disabled=k===curType;b.onclick=()=>{closePanel();toast(`Going to ${w.name}…`);setTimeout(()=>{loadWorld(k);persist();pop(w.name.toUpperCase(),'Welcome!');tutEv('world');},40);};row.appendChild(b);body.appendChild(row);}});}
-const VERSION='2026.11-w2',FB_URL='https://refinery-five.vercel.app/api/feedback';
+const VERSION='2026.11-w3',FB_URL='https://refinery-five.vercel.app/api/feedback';
 const FB={praise:{label:'I love it',q:'What do you love?',r:['Building','My pet','The isles','The animals and Isle Folk','Everything!']},
   confusing:{label:'Something is hard',q:'What is hard?',r:['Turning and looking','Placing or breaking blocks','Doors or furniture','I got lost','I don\'t know what to do next','The guide is too long']},
   bug:{label:'Bug',q:'What went wrong?',r:['I got stuck','A block won\'t place','My pet got in the way','Something looks wrong','The game froze or went slow','My world didn\'t save']}};

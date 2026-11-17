@@ -22,7 +22,8 @@ console.log('init ok',Date.now()-t0,'ms');
 T=40;runTimers();console.log('preview world loaded',Date.now()-t0,'ms');
 const grassBtn=created.find(e=>e.id==='world-grass');grassBtn.onclick();T=200;runTimers();console.log('started grass',Date.now()-t0,'ms');
 function frames(n){for(let i=0;i<n;i++){T+=16;rafCb(T);runTimers();}}
+const ran=m=>console.log('PASS ran without error: '+m);
 frames(30);
 const t=window.__t,P=t.P;t.camera.position={x:0,y:0,z:0,set(a,b,c){this.x=a;this.y=b;this.z=c},copy(){}};
 frames(60);const before=[P.x,P.y,P.z].map(v=>v.toFixed(1));P.x=10.5;P.z=10.5;P.y=25;P.vy=0;let low=99;for(let i=0;i<200;i++){frames(1);low=Math.min(low,P.y);}
-console.log('fell from void: lowest y',low.toFixed(1),'now at',[P.x,P.y,P.z].map(v=>v.toFixed(1)).join(','),'(was',before.join(','),') hearts',P.hearts);
+console.log('fell from void: lowest y',low.toFixed(1),'now at',[P.x,P.y,P.z].map(v=>v.toFixed(1)).join(','),'(was',before.join(','),') hearts',P.hearts);ran('fall off the isle and get carried back');

@@ -6,6 +6,6 @@ loop did with each one. No tester names are copied into this public repo.
 
 | Issue | Date | Kind | What the tester said | Status |
 | --- | --- | --- | --- | --- |
-| 2 | 8 Nov 2026 | Idea, phone, rated 2 of 5 | The glass door is not very easy to use. Asks for doors in different materials. | Glass door fix approved 13 Nov, waiting for build. Other door materials: owner chose a Wood Door later, after a rollback test |
-| 1 | 7 Nov 2026 | Bug, rated 3 of 5 | While building, the pet got in the way and a block could not be placed. | Fix approved 13 Nov, waiting for build |
+| 2 | 8 Nov 2026 | Idea, phone, rated 2 of 5 | The glass door is not very easy to use. Asks for doors in different materials. | Glass door fix on preview 17 Nov (build 2026.11-w3); stays open until testers confirm it helped. Other door materials: owner chose a Wood Door later, after a rollback test |
+| 1 | 7 Nov 2026 | Bug, rated 3 of 5 | While building, the pet got in the way and a block could not be placed. | Fix on preview 17 Nov (build 2026.11-w3) |
 | 1 | 7 Nov 2026 | Idea (same note) | A table block, and a pet house 4 blocks big. | Released 7 Nov |

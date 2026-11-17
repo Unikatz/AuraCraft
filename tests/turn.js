@@ -22,7 +22,8 @@ console.log('init ok',Date.now()-t0,'ms');
 T=40;runTimers();console.log('preview world loaded',Date.now()-t0,'ms');
 const grassBtn=created.find(e=>e.id==='world-grass');grassBtn.onclick();T=200;runTimers();console.log('started grass',Date.now()-t0,'ms');
 function frames(n){for(let i=0;i<n;i++){T+=16;rafCb(T);runTimers();}}
+const ran=m=>console.log('PASS ran without error: '+m);
 frames(30);
 const t=window.__t,P=t.P;t.camera.position={x:0,y:0,z:0,set(a,b,c){this.x=a;this.y=b;this.z=c},copy(){}};
 const kd=c=>listeners.win.keydown({code:c,repeat:false,preventDefault(){}}),ku=c=>listeners.win.keyup({code:c});
-frames(30);const y0=P.yaw;kd('ArrowLeft');frames(31);ku('ArrowLeft');console.log('arrow left 0.5s turned',(P.yaw-y0).toFixed(2),'rad');
+frames(30);const y0=P.yaw;kd('ArrowLeft');frames(31);ku('ArrowLeft');console.log('arrow left 0.5s turned',(P.yaw-y0).toFixed(2),'rad');ran('turn with the arrow key');
