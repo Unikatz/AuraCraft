@@ -2,7 +2,11 @@
 
 ## On preview (not live yet)
 
-Build 2026.11-w3.
+Nothing yet.
+
+## 17 Nov 2026: build 2026.11-w3
+
+Released by the Approver (Tuesday build). Rollback copy: the `stable` branch (the 12 Nov build 2026.11-w2).
 
 - If Doggy or Mew stands where you want to put a block, the pet hops to the square beside it and the block goes in. With a block in hand, Place aims past your pet; Use still pets it. If something else is in the way, or the pet has no room to move, the game says "Something is in the way" instead of doing nothing. (Approver, 13 Nov; feedback issue 1)
 - A door made of 2 Glass Rock blocks, one on top of the other, now opens and closes with one press. Only the one block above or below moves with it. (Approver, 13 Nov; feedback issue 2)
