@@ -41,6 +41,42 @@ Open points for the Friday review to raise, not to decide by default:
 | R1 | Rollback test | Done 16 Nov, now part of `bash tests/run.sh` as `tests/rollback.js`. Result: the live build and `stable` swap saves both ways with nothing lost (the Wood Table and Pet House are already in `stable`). A block `stable` does not know stops that world from opening in `stable`. | Done |
 | R2 | Unknown blocks never crash a world | If a save holds a block this version does not know, show it as a plain placeholder block and keep it in the save, instead of failing to open the world. Extra protection on top of the "new blocks ship unplaceable first" rule. Owner request (rollback safety). | About half a day, test included |
 
+## To validate at the Friday 20 Nov review
+
+### Animals get in the way when placing blocks (owner, 19 Nov 2026)
+
+Source: the owner passed on tester feedback that animals get in the way when placing blocks.
+Related: feedback issue 4 (18 Nov, phone, "My pet still blocks the way", rated 3 of 5, no detail
+given). It came from the feedback form, the day after build 2026.11-w3 went live, and the form
+does not send the game version, so we cannot tell which build the tester was on.
+
+What the 2026.11-w3 fix covers: only Doggy and Mew. A pet in the target square hops aside, and
+Place aims past pets. Dev check on 19 Nov (scratch run of the game code, not a shipped test):
+
+| Case | What happens now |
+| --- | --- |
+| Pet in the target square, room beside it | Pet hops aside, block placed (fixed in w3) |
+| Pet on a 1-wide bridge or ledge | Pet hops back along the bridge, block placed |
+| Wild creature (such as a Puff-sheep) in the target square, Place pressed | No block. Place pets the creature instead ("likes you! +1 aura") |
+| Wild creature between the player and the target | No block, and often no message at all (pet cooldown) |
+
+To validate before anything is built:
+
+- V1. Which creature: pet or wild animals? Ask through the next TL;DR. Watch "Tell us" for
+  "My pet got in the way" and "A block won't place". Those notes carry the game version.
+- V2. Old build: was the tester on the 12 Nov build (cached page)? Issue 4 cannot say.
+- V3. Reproduce on a phone on the live w3 build: a pet and a wild creature next to a build spot.
+
+Possible actions, for the Approver to decide on Friday (each about half a day, test included):
+
+- A. Extend the w3 fix to wild creatures: with a block in hand, Place aims past every creature
+  (Use still pets them), and a creature in the target square steps aside like the pet does.
+- B. Smaller: Place aims past every creature, but a creature in the target square only shows
+  "Something is in the way". No creature is moved.
+- C. Wait one more week for evidence from "Tell us" (V1 to V3), then choose A or B.
+
+None of these touch the escalate list: nothing saved changes, no new block.
+
 ## Later: bigger than one week or a change of direction
 
 These need shaping and an owner decision before they can enter a sprint.

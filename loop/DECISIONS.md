@@ -4,6 +4,7 @@ Newest first. Status: Backlog (decided, kept for a later sprint, see `BACKLOG.md
 
 | Date | Item | Decided by | Decision | Status |
 | --- | --- | --- | --- | --- |
+| 19 Nov 2026 | Animals get in the way when placing blocks (tester feedback, feedback issue 4) | Owner | Add to the backlog to validate and discuss actions. Options A to C in `BACKLOG.md`, for the 20 Nov review | Backlog: validate 20 Nov |
 | 17 Nov 2026 | Release build 2026.11-w3 to the live game | Approver | Release: tests passed (8 of 8 files), build holds exactly the 3 approved items, nothing on the escalate list. Notes for the owner: the new counts for 5 older tests are mostly "ran without error" markers; a pet could hop into water or lava; any 2 stacked glass blocks (incl. tall windows) now open together; the 3D view was not seen on screen before release | Released 17 Nov |
 | 16 Nov 2026 | Every release must be possible to roll back | Owner | Standing rule. Rollback check added to `bash tests/run.sh` (save round trip with `stable`, and no placeable block that `stable` lacks). New blocks ship unplaceable first. Not yet written into `CHARTER.md`: the owner adds it there | In force from 16 Nov |
 | 16 Nov 2026 | Rollback test (R1) | Owner | Done 16 Nov: today's live build and `stable` swap saves both ways with no errors and nothing lost. A block that `stable` does not know makes that world fail to open in `stable`, so new blocks must ship unplaceable first | Done |
