@@ -27,7 +27,7 @@ Pod glows) rather than as punishment.
 
 Open points for the Friday review to raise, not to decide by default:
 
-- Owner decision 20 Nov (E2, option a): device-only play-time records are not data collection. H1 and H4 are in the 24 Nov build; H2 and H3 move to the sprint from 27 Nov, H2 at 8 pm unless the owner names another time.
+- Owner decision 20 Nov (E2, option a): device-only play-time records are not data collection. H1 and H4 are in the 24 Nov build; H2 and H3 move to the sprint from 27 Nov, H2 at 8 pm (owner confirmed).
 - H3 keeps a play-time count about the player on the device. Under the charter's current reading
   (on-device only is not data collection) this is allowed, but that reading is not yet
   confirmed by the owner. The owner asked for this item, so confirm the reading with the owner
