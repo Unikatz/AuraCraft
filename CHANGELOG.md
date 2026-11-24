@@ -2,7 +2,11 @@
 
 ## On preview (not live yet)
 
-Build 2026.11-w4 (Tuesday build, 24 Nov).
+Nothing yet.
+
+## 24 Nov 2026: build 2026.11-w4
+
+Released by the Approver (Tuesday build). Rollback copy: the `stable` branch (the 17 Nov build 2026.11-w3).
 
 - With a block in hand, Place now aims past every creature, not only Doggy and Mew, so a Puff-sheep standing in front no longer stops your block. If a wild creature stands right where the block would go, the game says "Something is in the way" and leaves it there. Use (E) still pets creatures. A pet that hops aside never lands in water or an Ember Pool; if there is no dry square, it stays and the game says so. (Approver, 20 Nov, changed; feedback issues 1 and 4)
 - Help now says "Gloomies" instead of "zombies" in the two places it still did. (Approver, 20 Nov; feedback issue 3)
