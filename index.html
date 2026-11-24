@@ -268,7 +268,7 @@ function vnoise(x,y,z,s){const xi=Math.floor(x),yi=Math.floor(y),zi=Math.floor(z
 function fbm2(x,z,s){let a=0,amp=.5,f=1,n=0;for(let o=0;o<4;o++){a+=vnoise(x*f,.5,z*f,s+o*17)*amp;n+=amp;amp*=.5;f*=2;}return a/n;}
 
 // ================= blocks
-const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WOOD:5,LOG:6,LEAVES:7,CONCRETE:8,GLASS:9,GLASS_OPEN:10,WATER:11,GLOW:12,LAMP:13,SHELF:14,CHAIR_R:15,CHAIR_B:16,CHAIR_Y:17,DIA_ORE:18,DIAMOND:19,TNT:20,STRONG_GLASS:21,LAMP_TABLE:22,DIA_CHAIR:23,WARM_WATER:24,CLEAN_WATER:25,BEDROCK:26,TREASURE:27,BASALT:28,LAVA:29,SCORCH:30,CAKE:31,SPONGE:32,CHOCO:33,COOKIE:34,CANDY:35,JELLY:36,MINI_TNT:37,MILK:38,SNOW:39,ICE:40,PINE:41,SANDSTONE:42,CACTUS:43,DARKSTONE:44,DARKGRASS:45,CRYSTAL:46,RUNE:47,NEON_P:48,NEON_C:49,NEON_Y:50,BRICK:51,PATH:52,BED:53,BOUNCE:54,GOLD:55,RAINBOW:56,RAIL:57,ART:58,HAY:59,AWNING:60,LANTERN:61,TABLE:62,PET_HOUSE:63};
+const B={AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,WOOD:5,LOG:6,LEAVES:7,CONCRETE:8,GLASS:9,GLASS_OPEN:10,WATER:11,GLOW:12,LAMP:13,SHELF:14,CHAIR_R:15,CHAIR_B:16,CHAIR_Y:17,DIA_ORE:18,DIAMOND:19,TNT:20,STRONG_GLASS:21,LAMP_TABLE:22,DIA_CHAIR:23,WARM_WATER:24,CLEAN_WATER:25,BEDROCK:26,TREASURE:27,BASALT:28,LAVA:29,SCORCH:30,CAKE:31,SPONGE:32,CHOCO:33,COOKIE:34,CANDY:35,JELLY:36,MINI_TNT:37,MILK:38,SNOW:39,ICE:40,PINE:41,SANDSTONE:42,CACTUS:43,DARKSTONE:44,DARKGRASS:45,CRYSTAL:46,RUNE:47,NEON_P:48,NEON_C:49,NEON_Y:50,BRICK:51,PATH:52,BED:53,BOUNCE:54,GOLD:55,RAINBOW:56,RAIL:57,ART:58,HAY:59,AWNING:60,LANTERN:61,TABLE:62,PET_HOUSE:63,MYSTERY:64};
 const DEF=[];
 function def(id,o){DEF[id]=Object.assign({solid:true,opaque:true,fluid:false,trans:false,glow:0,lamp:0,shape:null,free:false,unlock:false,noplace:false,target:true,tip:''},o);}
 def(B.AIR,{name:'Air',solid:false,opaque:false,target:false,t:['dirt']});
@@ -335,6 +335,8 @@ def(B.AWNING,{name:'Striped Cloth',t:['awning'],free:true});
 def(B.LANTERN,{name:'Smile Lantern',t:['lantern_top','lantern_face','lantern_top'],glow:11,free:true,tip:'A smiling paper lantern'});
 def(B.TABLE,{name:'Wood Table',t:['planks'],opaque:false,shape:'tbl',free:true,tip:'A wooden table. Put chairs next to it'});
 def(B.PET_HOUSE,{name:'Pet House',t:['planks'],opaque:false,shape:'pet',free:true,tip:'A wooden pet house that sits on 4 blocks of floor (2 x 2). Your pet can sleep here'});
+// a block from a newer version: shown as a plain placeholder, never placeable, never changed (the save keeps its real id)
+def(B.MYSTERY,{name:'Mystery Block',t:['stone'],noplace:true,tip:'A block from a newer Aura Isles. It is kept safe here'});
 const NB=DEF.length, SOLID=new Uint8Array(NB), OPAQ=new Uint8Array(NB), FLUID=new Uint8Array(NB);
 for(let i=0;i<NB;i++){SOLID[i]=DEF[i].solid?1:0;OPAQ[i]=DEF[i].opaque?1:0;FLUID[i]=DEF[i].fluid?1:0;}
 const LIMITED=new Set([B.DIAMOND,B.TNT,B.MINI_TNT,B.DIA_CHAIR,B.WARM_WATER,B.CLEAN_WATER]);
@@ -734,11 +736,13 @@ let curType=null,wd={d:{},p:new Set(),s:{}},spawnPt={x:56,y:30,z:56};
 function persist(){if(curType)S.worlds[curType]={d:wd.d,p:[...wd.p],s:wd.s,pos:[P.x,P.y,P.z]};try{localStorage.setItem(SAVE_KEY,JSON.stringify(S));}catch(e){}}
 const have=id=>LIMITED.has(id)?(S.inv[id]||0)>0:DEF[id].unlock?S.unlocked.includes(id):DEF[id].free;
 const P={x:56,y:30,z:56,vy:0,kx:0,kz:0,yaw:0,pitch:0,h:1.75,eye:1.6,ground:false,hearts:5,hurtCD:0,lastHurt:99,regen:0,dead:0,sit:null,inFluid:0};
+// healthy play (H1): an eye and stretch break after 30 minutes of play. Kept in memory only, nothing is saved
+const BRK_PLAY=1800,BRK_WAIT=120,BRK_SECS=20,BRK_AWAY=300000,BRK={play:0,wait:0,left:0,on:false,ready:false,hid:0};
 let running=false,paused=false,dayF=1,playerSafe=false,shake=0,hurtFx=0,emoteT=0,emoteCD=0,auraHold=false,farmT=0,farmTick=0,farmShown=false,guardMsgCD=0,petCD=0,saveT=0,lavaT=0;
 
 function safeSpot(pt){const x=pt.x,z=pt.z;let y=Math.max(1,Math.floor(pt.y));while(y<H-2&&collides(x,y,z))y++;return{x,y,z};}
 let mapDirty=true;
-function setBlock(x,y,z,id,rot,byPlayer){mapDirty=true;setTimeout(()=>onCellChanged(x,y,z),0);if(x<0||z<0||x>=W||z>=W||y<0||y>=H)return;const i=I(x,y,z);vox[i]=id;if(rot)meta.set(i,rot);else meta.delete(i);
+function setBlock(x,y,z,id,rot,byPlayer){mapDirty=true;setTimeout(()=>onCellChanged(x,y,z),0);if(x<0||z<0||x>=W||z>=W||y<0||y>=H)return;const i=I(x,y,z);if(vox[i]===B.MYSTERY)return;vox[i]=id;if(rot)meta.set(i,rot);else meta.delete(i);
   wd.d[i]=id|((rot||0)<<8);if(byPlayer&&SOLID[id])wd.p.add(i);else wd.p.delete(i);topH[z*W+x]=colTop(x,z);botH[z*W+x]=colBot(x,z);relightAround(x,y,z,14);}
 function relightAround(x,y,z,r){const x0=Math.max(0,x-r),x1=Math.min(W-1,x+r),z0=Math.max(0,z-r),z1=Math.min(W-1,z+r),y0=Math.max(0,y-r),y1=Math.min(H-1,y+r);relight(x0,y0,z0,x1,y1,z1);markDirty(x0-1,z0-1,x1+1,z1+1);}
 function isHouse(x,y,z){if(x<0||z<0||x>=W||z>=W)return false;for(let dy=2;dy<=8;dy++){const yy=y+dy;if(yy>=H)break;const i=I(x,yy,z);if((wd.p.has(i)||villageSet.has(i))&&SOLID[vox[i]])return true;}return false;}
@@ -751,7 +755,7 @@ function collides(x,y,z,h){const r=.3,e=.002,x0=Math.floor(x-r+e),x1=Math.floor(
   for(let yy=y0;yy<=y1;yy++)for(let zz=z0;zz<=z1;zz++)for(let xx=x0;xx<=x1;xx++)if(solidAt(xx,yy,zz))return true;return false;}
 
 function loadWorld(type){if(curType)persist();curType=type;S.world=type;const sv=S.worlds[type]||{};wd={d:sv.d||{},p:new Set(sv.p||[]),s:sv.s||{}};
-  generate(type);for(const k in wd.d){const i=+k,v=wd.d[k];vox[i]=v&255;if(v>>8)meta.set(i,v>>8);else meta.delete(i);}
+  generate(type);for(const k in wd.d){const i=+k,v=wd.d[k],b=v&255;vox[i]=b<NB?b:B.MYSTERY;if(v>>8)meta.set(i,v>>8);else meta.delete(i);}
   computeAllTops();relight(0,0,0,W-1,H-1,W-1);for(let cx=0;cx<NC;cx++)for(let cz=0;cz<NC;cz++)buildChunk(cx,cz);dirty.clear();
   for(const m of mobs.slice())removeMob(m);for(const f of fuses)scene.remove(f.mesh);fuses.length=0;
   spawnPt=findSpawn();placeBeacon();mapDirty=true;const p=sv.pos;
@@ -1015,8 +1019,8 @@ function raycast(ox,oy,oz,dx,dy,dz,max){let x=Math.floor(ox),y=Math.floor(oy),z=
   const tdx=Math.abs(1/dx),tdy=Math.abs(1/dy),tdz=Math.abs(1/dz);let tmx=dx?(dx>0?x+1-ox:ox-x)*tdx:Infinity,tmy=dy?(dy>0?y+1-oy:oy-y)*tdy:Infinity,tmz=dz?(dz>0?z+1-oz:oz-z)*tdz:Infinity;
   let px=x,py=y,pz=z,t=0;for(let k=0;k<80;k++){const id=get(x,y,z);if(id&&DEF[id].target)return{x,y,z,px,py,pz,id,t};px=x;py=y;pz=z;
     if(tmx<tmy){if(tmx<tmz){x+=sx;t=tmx;tmx+=tdx;}else{z+=sz;t=tmz;tmz+=tdz;}}else{if(tmy<tmz){y+=sy;t=tmy;tmy+=tdy;}else{z+=sz;t=tmz;tmz+=tdz;}}if(t>max)return null;}return null;}
-function pick(noGhost,skipPets){const o=camera.position,d=dirVec();let bt=reach;const blk=raycast(o.x,o.y,o.z,d.x,d.y,d.z,reach);if(blk)bt=blk.t;let mob=null;
-  for(const m of mobs){if(skipPets&&isPet(m))continue;const cy=m.y+m.parts.hc,r=m.parts.hr,ox=m.x-o.x,oy=cy-o.y,oz=m.z-o.z,t=ox*d.x+oy*d.y+oz*d.z;if(t<0||t>bt)continue;
+function pick(noGhost,skipMobs){const o=camera.position,d=dirVec();let bt=reach;const blk=raycast(o.x,o.y,o.z,d.x,d.y,d.z,reach);if(blk)bt=blk.t;let mob=null;
+  for(const m of mobs){if(skipMobs)break;const cy=m.y+m.parts.hc,r=m.parts.hr,ox=m.x-o.x,oy=cy-o.y,oz=m.z-o.z,t=ox*d.x+oy*d.y+oz*d.z;if(t<0||t>bt)continue;
     const ex=ox-d.x*t,ey=oy-d.y*t,ez=oz-d.z*t;if(ex*ex+ey*ey+ez*ez<r*r){bt=t;mob=m;}}
   if(!noGhost&&!mob){const gh=rayGhost();if(gh&&gh.t<bt)return{ghost:gh.g};}
   return mob?{mob}:blk?{blk}:null;}
@@ -1024,6 +1028,7 @@ function held(){return S.hotbar[S.slot];}
 function petPet(m){if(m.nap){m.nap=null;toast(`${m.name} wakes up!`);}if(petCD>0)return;petCD=1;tutEv('pet');burst(m.x,m.y+1,m.z,[1,.45,.7],14,2.5,.9,2);snd('pet');addAura(2);toast(`${m.name} loves you! +2 aura`);}
 function doBreak(){if(P.dead)return;const h=pick(true);if(!h)return;if(h.mob){mobAction(h.mob,'hit');return;}
   const{x,y,z,id}=h.blk;if(id===B.BEDROCK){toast('Bedrock is too strong to break');return;}
+  if(id===B.MYSTERY){toast('This Mystery Block is from a newer Aura Isles. It stays safe here');return;}
   if(id===B.TREASURE){openTreasure(x,y,z);return;}
   const i=I(x,y,z);if(id===B.SHELF)emptyShelf(i);
   if(id===B.PET_HOUSE){for(const[a,b,c]of petSiblings(x,y,z))if(a>=0&&c>=0&&a<W&&c<W&&vox[I(a,b,c)]===B.PET_HOUSE)setBlock(a,b,c,0,0,false);}
@@ -1041,6 +1046,7 @@ function give(id,n){S.inv[id]=(S.inv[id]||0)+n;renderHotbar();}
 function petHop(m,px,py,pz){const fy=Math.floor(m.y+.05);let best=null,bd=1e9;
   for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const x=px+dx,z=pz+dz;if(x<0||z<0||x>=W||z>=W)continue;
     for(const dy of[0,1,-1]){const y=fy+dy;if(y<1||y+1>=H||solidAt(x,y,z)||solidAt(x,y+1,z)||!solidAt(x,y-1,z))continue;
+      if(FLUID[vox[I(x,y,z)]]||FLUID[vox[I(x,y+1,z)]])continue;// never into water or lava
       if(x<P.x+.3&&x+1>P.x-.3&&z<P.z+.3&&z+1>P.z-.3&&y<P.y+P.h&&y+1>P.y)continue;
       if(mobs.some(o=>o!==m&&Math.floor(o.x)===x&&Math.floor(o.z)===z&&Math.abs(o.y-y)<1.5))continue;
       const dd=(x+.5-m.x)**2+(z+.5-m.z)**2+Math.abs(dy)*.5;if(dd<bd){bd=dd;best=[x,y,z];}break;}}
@@ -1101,7 +1107,7 @@ function updateFuses(dt){for(const f of fuses.slice()){f.t-=dt;f.mesh.material.o
   if(f.t<=0){scene.remove(f.mesh);f.mesh.geometry.dispose();fuses.splice(fuses.indexOf(f),1);if(vox[f.i]===f.id)explode(f.x,f.y,f.z,f.id===B.TNT?3.2:1.7);}}}
 function explode(cx,cy,cz,r,fz){const R=Math.ceil(r);
   for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){if(dx*dx+dy*dy+dz*dz>r*r)continue;const x=cx+dx,y=cy+dy,z=cz+dz;if(x<0||z<0||x>=W||z>=W||y<0||y>=H)continue;
-    const i=I(x,y,z),id=vox[i];if(!id||id===B.BEDROCK||FLUID[id]||villageSet.has(i))continue;
+    const i=I(x,y,z),id=vox[i];if(!id||id===B.BEDROCK||id===B.MYSTERY||FLUID[id]||villageSet.has(i))continue;
     if((id===B.TNT||id===B.MINI_TNT)&&(dx||dy||dz)){lightFuse(x,y,z,id,.3+Math.random()*.4);continue;}
     if(id===B.TREASURE){openTreasure(x,y,z,true);continue;}if(id===B.SHELF)emptyShelf(i);
     vox[i]=0;meta.delete(i);wd.d[i]=0;wd.p.delete(i);}
@@ -1375,7 +1381,7 @@ function tutPos(k){const s=tut&&tut.site;if(!s||curType!==tut.world)return null;
 function groundOK(x,z){if(x<1||z<1||x>W-2||z>W-2)return false;const t=topH[z*W+x];if(t<2)return false;const w=WORLDS[curType],id=vox[I(x,t,z)];return id===w.top||id===w.sub||id===B.PATH||id===B.SCORCH||id===B.BASALT;}
 function surfaceY(x,z){x=clamp(x,1,W-2);z=clamp(z,1,W-2);return topH[z*W+x]+1;}
 function openGround(x,z){for(let r=0;r<8;r++)for(let dz=-r;dz<=r;dz++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dz))!==r)continue;const a=x+dx,b=z+dz;if(groundOK(a,b)&&!vox[I(a,topH[b*W+a]+1,b)]&&!vox[I(a,topH[b*W+a]+2,b)])return{x:a,y:topH[b*W+a]+1,z:b};}return{x,y:surfaceY(x,z),z};}
-function setRaw(x,y,z,id){if(x<0||z<0||x>=W||z>=W||y<1||y>=H)return;const i=I(x,y,z);if(vox[i]===B.BEDROCK)return;vox[i]=id;meta.delete(i);wd.d[i]=id;wd.p.delete(i);}
+function setRaw(x,y,z,id){if(x<0||z<0||x>=W||z>=W||y<1||y>=H)return;const i=I(x,y,z);if(vox[i]===B.BEDROCK||vox[i]===B.MYSTERY)return;vox[i]=id;meta.delete(i);wd.d[i]=id;wd.p.delete(i);}
 function makeSite(){// a flat building spot straight ahead of home
   const sx=Math.floor(spawnPt.x),sz=Math.floor(spawnPt.z),base=Math.floor(spawnPt.y)-1,ox=clamp(sx-1,3,W-8),oz=clamp(sz-9,3,W-8);
   const top=vox[I(sx,base,sz)]||B.GRASS,fillId=WORLDS[curType].sub;
@@ -1456,8 +1462,17 @@ function pop(big,small){const e=$('pop');e.querySelector('b').textContent=big;co
 
 // ================= panels
 const panelEl=$('panel'),pbody=$('pbody');
-function openPanel(title,build){paused=true;exitLock();panelEl.hidden=false;$('ptitle').textContent=title;pbody.innerHTML='';build(pbody);$('pclose').focus({preventScroll:true});updateHint();}
-function closePanel(){if(panelEl.hidden)return;panelEl.hidden=true;paused=false;renderHotbar();updateHint();}
+function openPanel(title,build){if(BRK.on)return;paused=true;exitLock();panelEl.hidden=false;$('ptitle').textContent=title;pbody.innerHTML='';build(pbody);$('pclose').focus({preventScroll:true});updateHint();}
+function brkTick(dt){
+  if(BRK.on){if(BRK.left>0){BRK.left=Math.max(0,BRK.left-dt);$('brkN').textContent=Math.ceil(BRK.left);}if(BRK.left<=0&&!BRK.ready){BRK.ready=true;$('brkMsg').textContent='Well done! Ready when you are.';$('brkGo').disabled=false;}return;}
+  if(!running||paused||P.dead||sleepT>0)return;BRK.play+=dt;if(BRK.play<BRK_PLAY)return;
+  // wait until no Gloomy is within 10 blocks (the bed's rule), but at most 2 more minutes
+  if(BRK.wait<BRK_WAIT&&mobs.some(m=>HOSTILE(m.kind)&&Math.hypot(m.x-P.x,m.z-P.z)<10)){BRK.wait+=dt;return;}
+  showBreak();}
+function showBreak(){persist();const pet=mobs.find(isPet),nm=pet?pet.name:'Your pet';
+  openPanel('Stretch break',body=>{body.innerHTML=`<p class="sub">${nm} wants a stretch! You have played for 30 minutes. Your world is saved and paused.</p><div class="keys"><b>Eyes</b><span>Look at something far away for 20 seconds</span><b>Body</b><span>Stand up and stretch</span><b>Drink</b><span>Have some water</span></div><p class="sub" id="brkMsg" style="margin-top:14px">Back in <b id="brkN">${BRK_SECS}</b> seconds</p><button class="btn gold" id="brkGo" disabled>Keep playing</button>`;body.querySelector('#brkGo').onclick=closePanel;});
+  BRK.on=true;BRK.ready=false;BRK.left=BRK_SECS;$('pclose').hidden=true;snd('pop');}
+function closePanel(){if(panelEl.hidden)return;if(BRK.on){if(BRK.left>0)return;BRK.on=false;BRK.play=BRK.wait=0;$('pclose').hidden=false;}panelEl.hidden=true;paused=false;renderHotbar();updateHint();}
 $('pclose').onclick=closePanel;panelEl.addEventListener('pointerdown',e=>{if(e.target===panelEl)closePanel();});
 function openBag(){openPanel('Blocks',body=>{body.innerHTML=`<p class="sub">Tap a block to put it in hotbar slot ${S.slot+1}.</p><div class="items"></div>`;const box=body.querySelector('.items');
   for(const id of BAG_ORDER){if(!have(id)&&!LIMITED.has(id))continue;const b=document.createElement('button');b.className='item';b.title=DEF[id].tip||DEF[id].name;
@@ -1503,7 +1518,7 @@ function openShop(){openPanel('Shop',body=>{const draw=()=>{const d=S.inv[B.DIAM
 function openWorlds(){openPanel('Isles',body=>{body.innerHTML='<p class="sub">Fly to another set of isles. Your builds on each are saved.</p>';
   for(const k in WORLDS){const w=WORLDS[k];const row=document.createElement('div');row.className='row';row.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(${w.strata.join(',')})"></div><div class="grow">${w.name}${k===curType?' (you are here)':''}<small>${w.blurb}</small></div>`;
     const b=document.createElement('button');b.className='btn gold';b.textContent=k===curType?'Here':'Go';b.disabled=k===curType;b.onclick=()=>{closePanel();toast(`Going to ${w.name}…`);setTimeout(()=>{loadWorld(k);persist();pop(w.name.toUpperCase(),'Welcome!');tutEv('world');},40);};row.appendChild(b);body.appendChild(row);}});}
-const VERSION='2026.11-w3',FB_URL='https://refinery-five.vercel.app/api/feedback';
+const VERSION='2026.11-w4',FB_URL='https://refinery-five.vercel.app/api/feedback';
 const FB={praise:{label:'I love it',q:'What do you love?',r:['Building','My pet','The isles','The animals and Isle Folk','Everything!']},
   confusing:{label:'Something is hard',q:'What is hard?',r:['Turning and looking','Placing or breaking blocks','Doors or furniture','I got lost','I don\'t know what to do next','The guide is too long']},
   bug:{label:'Bug',q:'What went wrong?',r:['I got stuck','A block won\'t place','My pet got in the way','Something looks wrong','The game froze or went slow','My world didn\'t save']}};
@@ -1522,15 +1537,16 @@ function openTips(){openPanel('More tips',body=>{body.innerHTML=`<p class="sub">
   body.querySelector('#tipsGo').onclick=()=>{closePanel();startTips();toast('More tips started');};});}
 function openHelp(){openPanel('How to play',body=>{body.innerHTML=`<div class="keys"><b>Look speed</b><span id="lookSp"></span></div><div class="keys">
   <b>Move</b><span>W A S D or arrow keys (left stick on a tablet)</span><b>Look and turn</b><span>Mouse, the left and right arrow keys, or drag the screen. On a tablet, pushing the stick left or right turns you</span>
-  <b>Break</b><span>Left click. Hit zombies the same way</span><b>Place</b><span>Right click</span><b>Jump / swim</b><span>Space</span><b>Run</b><span>Shift</span>
+  <b>Break</b><span>Left click. Hit Gloomies the same way</span><b>Place</b><span>Right click</span><b>Jump / swim</b><span>Space</span><b>Run</b><span>Shift</span>
   <b>Use (E)</b><span>Sit on chairs, sleep in beds, open glass doors, light TNT, open bookshelves and treasure, pet animals, trade with villagers</span>
   </div><div class="build"><h3 style="font-family:var(--display);font-weight:400;color:var(--pink);margin:14px 0 6px">How to build a house</h3>
   <p class="sub">To place a block, aim at the top or side of a block that is already there and right click (tap Place). The new block sticks to the side you aimed at. Build in this order:</p>
   <div class="strip" id="strip"></div>
   <button class="btn gold" id="planBtn">Build this house here, step by step</button> <button class="btn" id="guideBtn">Start the quick guide</button> <button class="btn" id="tipsBtn">More tips (12)</button></div><div class="keys" style="margin-top:14px">
-  <b>Stuck?</b><span>Hold Space (Jump) while walking into a wall to climb up it. You can also place a block under your feet while looking down to build yourself up</span><b>Go home (R)</b><span>Takes you back to where you started. The yellow beam of light shows where home is, and you come back there if you faint</span><b>Map</b><span>Top left. You are the white arrow, home is the yellow square, Doggy and Mew are pink, zombies are red. Tap the map to hide it</span><b>Torch (T)</b><span>Turn your torch on and off to see in the dark and in caves</span><b>Aura farm (F)</b><span>Hold still and hold F to farm aura</span><b>6 7</b><span>Type 6 then 7 quickly</span>
+  <b>Stuck?</b><span>Hold Space (Jump) while walking into a wall to climb up it. You can also place a block under your feet while looking down to build yourself up</span><b>Go home (R)</b><span>Takes you back to where you started. The yellow beam of light shows where home is, and you come back there if you faint</span><b>Map</b><span>Top left. You are the white arrow, home is the yellow square, Doggy and Mew are pink, Gloomies are red. Tap the map to hide it</span><b>Torch (T)</b><span>Turn your torch on and off to see in the dark and in caves</span><b>Aura farm (F)</b><span>Hold still and hold F to farm aura</span><b>6 7</b><span>Type 6 then 7 quickly</span>
   <b>Q · C · B · M</b><span>Blocks, Craft, Shop, Worlds</span></div>
-  <p class="sub" style="margin-top:14px"><b>Isle Folk:</b> every isle has a little town (green house on the map) linked by a rainbow bridge. Press E on one of the Isle Folk to see their shop, and sell Aura Gems for 12 coins. <b>Creatures:</b> click to pet them for aura. <b>Fizz Pops</b> are fizzy candy balls: tap one and it bursts into confetti and coins. <b>Dream Pods:</b> dream at night to skip to morning and get +25 aura. <b>Bounce Pads:</b> jump on them to fly up high. <b>Falling off?</b> A cloud catches you and carries you back.</p><p class="sub">Gloomies are shadow puffs that drift in at night. Shine your torch on them, or tap them, and they turn into friendly glow-sprites. A house with a roof keeps them out, and Doggy and Mew calm them for you too. Treasure sits on the tiny floating rocks and in the sun temples. Crystal Nodes grow under the islands and give Aura Gems.</p>`;const strip=body.querySelector('#strip');STAGES.forEach((sg,i)=>{const f=document.createElement('figure');const cv=document.createElement('canvas');cv.width=300;cv.height=130;f.appendChild(cv);const cap=document.createElement('figcaption');cap.innerHTML=`<b>${i+1}. ${sg.name}</b>${['A square of Concrete, 4 by 4. Leave a gap at the front for the door.','Another row on top. Use Glass Rock for windows.','Walk in through the gap. Add a Lamp, a Chair and a Bed.','Wood across the top. Reach it from inside.','2 Glass Rock blocks in the gap. Press E to open it.'][i]}`;f.appendChild(cap);strip.appendChild(f);drawPic(cv,c=>{const k=STAGE_OF[c.part];return k<i?'done':k===i?'next':'future';},sg.layer);});
+  <p class="sub" style="margin-top:14px"><b>Isle Folk:</b> every isle has a little town (green house on the map) linked by a rainbow bridge. Press E on one of the Isle Folk to see their shop, and sell Aura Gems for 12 coins. <b>Creatures:</b> click to pet them for aura. <b>Fizz Pops</b> are fizzy candy balls: tap one and it bursts into confetti and coins. <b>Dream Pods:</b> dream at night to skip to morning and get +25 aura. <b>Bounce Pads:</b> jump on them to fly up high. <b>Falling off?</b> A cloud catches you and carries you back.</p><p class="sub">Gloomies are shadow puffs that drift in at night. Shine your torch on them, or tap them, and they turn into friendly glow-sprites. A house with a roof keeps them out, and Doggy and Mew calm them for you too. Treasure sits on the tiny floating rocks and in the sun temples. Crystal Nodes grow under the islands and give Aura Gems.</p>
+  <h3 style="font-family:var(--display);font-weight:400;color:var(--pink);margin:14px 0 6px">For grown-ups</h3><p class="sub">Healthy play for children aged 7 to 12:</p><div class="keys"><b>Each day</b><span>Under 2 hours of screen use outside schoolwork</span><b>Breaks</b><span>Short breaks to rest the eyes and move about. This game offers a stretch break after every 30 minutes of play</span><b>Meals</b><span>Keep mealtimes screen-free</span><b>Bedtime</b><span>No screens in the hour before bed</span><b>Active play</b><span>At least an hour of active play every day, outdoors when you can</span></div><p class="sub" style="margin-top:10px">Based on Singapore MOH Grow Well SG (2025) and American Academy of Pediatrics advice.</p>`;const strip=body.querySelector('#strip');STAGES.forEach((sg,i)=>{const f=document.createElement('figure');const cv=document.createElement('canvas');cv.width=300;cv.height=130;f.appendChild(cv);const cap=document.createElement('figcaption');cap.innerHTML=`<b>${i+1}. ${sg.name}</b>${['A square of Concrete, 4 by 4. Leave a gap at the front for the door.','Another row on top. Use Glass Rock for windows.','Walk in through the gap. Add a Lamp, a Chair and a Bed.','Wood across the top. Reach it from inside.','2 Glass Rock blocks in the gap. Press E to open it.'][i]}`;f.appendChild(cap);strip.appendChild(f);drawPic(cv,c=>{const k=STAGE_OF[c.part];return k<i?'done':k===i?'next':'future';},sg.layer);});
   body.querySelector('#planBtn').onclick=showPlan;body.querySelector('#guideBtn').onclick=()=>{closePanel();startGuide();};body.querySelector('#tipsBtn').onclick=openTips;
   const ls=body.querySelector('#lookSp'),drawLs=()=>{ls.innerHTML=[['Slow',.6],['Normal',1],['Fast',1.5]].map(([n,v])=>`<button class="btn${(S.look||1)===v?' gold':''}" data-v="${v}" style="padding:4px 12px;margin-right:6px">${n}</button>`).join('')+' How fast you turn and look';ls.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.look=+b.dataset.v;persist();drawLs();});};drawLs();
   const v=document.createElement('p');v.className='sub';v.style.marginTop='14px';v.textContent='Aura Isles '+VERSION;body.appendChild(v);});}
@@ -1601,7 +1617,8 @@ function start(k){snd('');pick$.hidden=true;$('loading').hidden=false;setTimeout
 // ================= resize & loop
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();const d=Math.min(window.devicePixelRatio||1,1.5);fx.width=w*d|0;fx.height=h*d|0;fx._dpr=d;fxDirty=true;}
 window.addEventListener('resize',resize);resize();
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&running)persist();});
+document.addEventListener('visibilitychange',()=>{const now=performance.now();if(document.hidden){BRK.hid=now;if(running)persist();return;}
+  if(BRK.hid&&now-BRK.hid>=BRK_AWAY){BRK.play=BRK.wait=0;BRK.left=0;}BRK.hid=0;});// 5 minutes away counts as a break
 let lastT=performance.now(),bob=0,qLiveT=0;
 function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-lastT)/1000);lastT=now;
   if(running&&!paused)update(dt);updateParts(dt);rebuildDirty();
@@ -1609,7 +1626,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
   placeCamera(dt);
   if(shake>0){shake-=dt;camera.position.x+=(Math.random()-.5)*shake*.5;camera.position.y+=(Math.random()-.5)*shake*.5;}
   camera.rotation.set(P.pitch,P.yaw,0);camera.fov=lerp(camera.fov,runFx?82:72,Math.min(1,dt*8));camera.updateProjectionMatrix();
-  updateSky(dt);updateMap(dt);tutTick(dt);qLiveT-=dt;if(qLiveT<=0){qLiveT=.2;updateQuestLive();}updateGhostFx(now,dt);
+  updateSky(dt);updateMap(dt);tutTick(dt);brkTick(dt);qLiveT-=dt;if(qLiveT<=0){qLiveT=.2;updateQuestLive();}updateGhostFx(now,dt);
   {const dv=dirVec();U.uCam.value.set(camera.position.x,camera.position.y,camera.position.z);U.uDir.value.set(dv.x,dv.y,dv.z);U.uTorch.value=lerp(U.uTorch.value,torchOn&&running?1:0,Math.min(1,dt*12));torchLight.intensity=U.uTorch.value*1.8;torchModel.visible=torchOn&&running&&!thirdP;}
   if(running&&!paused){const h=pick();if(h&&(h.blk||h.ghost)){const b=h.blk||h.ghost;outline.visible=true;outline.position.set(b.x+.5,b.y+.5,b.z+.5);}else outline.visible=false;}
   renderer.render(scene,camera);drawFx(dt);}

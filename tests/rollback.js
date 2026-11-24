@@ -31,6 +31,14 @@ if(!added.length)console.log('PASS no new block ids compared with stable');
 const steps=[[NEW,'make','-','s1.json','this version makes a save'],[OLD,'load','s1.json','s2.json','stable loads it (rollback)'],[NEW,'load','s2.json','s3.json','this version loads what stable saved (roll forward)']];
 for(const[h,mode,i,o,label]of steps){const r=run(h,mode,i==='-'?'-':f(i),f(o),f('check.json'));
   const bad=!r.ok||/^FAIL/m.test(r.out);console.log(bad?'FAIL':'PASS',label);if(bad){fail=1;console.log(r.out.split('\n').filter(l=>/^FAIL/.test(l)).slice(0,8).join('\n'));break;}}
+// 3. a block this version does not know (from a newer build) never stops a world from opening,
+//    cannot be changed, and keeps its id through load and re-save (R2)
+if(!fail){const r1=run(NEW,'unknown',f('s1.json'),f('u1.json'),f('u.json')),bad1=!r1.ok||/^FAIL/m.test(r1.out);
+  console.log(bad1?'FAIL':'PASS','unknown block: world opens with a Mystery Block, it cannot be broken, replaced or blown up, and the save keeps its id');
+  if(bad1){fail=1;console.log(r1.out.split('\n').filter(l=>/^FAIL/.test(l)).slice(0,5).join('\n'));}
+  else{const r2=run(NEW,'unknown-again',f('u1.json'),f('u2.json'),f('u.json')),bad2=!r2.ok||/^FAIL/m.test(r2.out);
+    console.log(bad2?'FAIL':'PASS','unknown block: the re-saved world opens again with the id still kept');
+    if(bad2){fail=1;console.log(r2.out.split('\n').filter(l=>/^FAIL/.test(l)).slice(0,5).join('\n'));}}}
 fs.rmSync(tmp,{recursive:true,force:true});
 process.exit(fail);
 
@@ -38,7 +46,7 @@ function worker(htmlP,mode,inP,outP,chkP){
   const html=fs.readFileSync(htmlP,'utf8');const i=html.indexOf("\n(()=>{\n'use strict';"),j=html.indexOf('</script>',i);
   if(i<0||j<0){console.log('FAIL could not find the game script');process.exit(1);}
   let src=html.slice(i,j);const k=src.lastIndexOf('})();');
-  src=src.slice(0,k)+"window.__rb={P,get,setBlock,S,persist,B,DEF,get curType(){return curType}};\n"+src.slice(k);
+  src=src.slice(0,k)+"window.__rb={P,get,setBlock,S,persist,B,DEF,I,loadWorld,explode,get wd(){return wd},get curType(){return curType}};\n"+src.slice(k);
   function stub(name='stub'){const store={};const fn=function(){};return new Proxy(fn,{get(t,p){if(p===Symbol.toPrimitive)return()=>0;if(p==='then')return undefined;if(p in store)return store[p];if(p==='length')return 0;if(p===Symbol.iterator)return function*(){};const s=stub(name+'.'+String(p));store[p]=s;return s;},set(t,p,v){store[p]=v;return true;},apply(){return stub(name+'()');},construct(){return stub('new '+name);}});}
   const created=[],listeners={win:{},doc:{}},els={};
   function ctx2d(){const c=stub('ctx');c.createImageData=(w,h)=>({data:new Uint8ClampedArray(w*h*4)});c.getImageData=(x,y,w,h)=>({data:new Uint8ClampedArray(w*h*4)});c.measureText=()=>({width:50});c.createRadialGradient=()=>stub();c.createLinearGradient=()=>stub();return c;}
@@ -59,6 +67,18 @@ function worker(htmlP,mode,inP,outP,chkP){
   if(mode==='blocks'){const o={};t.DEF.forEach((d,id)=>{if(id&&d)o[id]={name:d.name,noplace:!!d.noplace};});fs.writeFileSync(outP,JSON.stringify(o));return;}
   T=40;runTimers();const btn=created.find(e=>e.id==='world-grass');if(!btn)fail('no grass world button');
   btn.onclick();T=200;runTimers();frames(60);
+  if(mode==='unknown'){// put an id no version knows (200) into the saved world, then load it for real
+    const x=Math.floor(t.P.x)+2,z=Math.floor(t.P.z)+2;let y=60;while(y>1&&!t.get(x,y-1,z))y--;const i=t.I(x,y,z);
+    t.wd.d[i]=200;t.loadWorld('food');frames(5);t.loadWorld('grass');frames(30);
+    if(t.get(x,y,z)!==t.B.MYSTERY)fail('the unknown block is not shown as a Mystery Block (got '+t.get(x,y,z)+')');
+    t.setBlock(x,y,z,0,0,true);t.setBlock(x,y,z,t.B.STONE,0,true);t.explode(x,y,z,2);frames(5);
+    if(t.get(x,y,z)!==t.B.MYSTERY)fail('the Mystery Block was changed');
+    t.persist();const w=JSON.parse(saved).worlds.grass.d;if(w[i]!==200)fail('the save lost the unknown id (has '+w[i]+')');
+    fs.writeFileSync(chkP,JSON.stringify({x,y,z,i}));console.log('PASS unknown id kept');fs.writeFileSync(outP,saved);return;}
+  if(mode==='unknown-again'){const c=JSON.parse(fs.readFileSync(chkP,'utf8'));frames(30);
+    if(t.get(c.x,c.y,c.z)!==t.B.MYSTERY)fail('after re-opening, the Mystery Block is gone');
+    t.persist();if(JSON.parse(saved).worlds.grass.d[c.i]!==200)fail('after re-opening, the save lost the unknown id');
+    console.log('PASS unknown id kept again');fs.writeFileSync(outP,saved);return;}
   if(mode==='make'){
     const x0=Math.floor(t.P.x)+3,z0=Math.floor(t.P.z)+3,blocks=[];let n=0;
     t.DEF.forEach((d,id)=>{if(!id||!d||d.noplace||d.fluid||d.shape==='pet')return;const x=x0+(n%12)*2,z=z0+Math.floor(n/12)*2;n++;let y=60;while(y>1&&!t.get(x,y-1,z))y--;t.setBlock(x,y,z,id,0,true);blocks.push([x,y,z,id,d.name]);});

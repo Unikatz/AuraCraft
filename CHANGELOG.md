@@ -2,7 +2,14 @@
 
 ## On preview (not live yet)
 
-Nothing yet.
+Build 2026.11-w4 (Tuesday build, 24 Nov).
+
+- With a block in hand, Place now aims past every creature, not only Doggy and Mew, so a Puff-sheep standing in front no longer stops your block. If a wild creature stands right where the block would go, the game says "Something is in the way" and leaves it there. Use (E) still pets creatures. A pet that hops aside never lands in water or an Ember Pool; if there is no dry square, it stays and the game says so. (Approver, 20 Nov, changed; feedback issues 1 and 4)
+- Help now says "Gloomies" instead of "zombies" in the two places it still did. (Approver, 20 Nov; feedback issue 3)
+- Stretch break: after 30 minutes of play the game saves, pauses the whole world and shows a calm screen (your pet wants a stretch: look far away for 20 seconds, stand up, have some water). Keep playing unlocks after a 20-second countdown. If a Gloomy is within 10 blocks it waits for it, at most 2 more minutes. 5 minutes away from the game also counts as a break. The timer is kept in memory only; nothing new is saved. (Approver, 20 Nov, changed; owner backlog H1)
+- Help has a "For grown-ups" section: under 2 hours of screen use a day outside schoolwork, short breaks for eyes and body, screen-free meals, no screens in the hour before bed, an hour of active play a day, outdoors when possible. Sources: Singapore MOH Grow Well SG press release (21 Jan 2025) and HealthHub "How parents can foster healthy screen use" for the 2-hour limit and the hour before bed; AAP (HealthyChildren.org "Helping kids thrive in a digital world", and the AAP policy statement summarised in AFP 2017) for screen-free meals, the hour before bed and an hour of physical activity. The backlog's "bigger screen at arm's length" line was left out because none of the sources says it, and the "every 30 minutes" figure is labelled as the game's own choice, not as advice. (Approver, 20 Nov, changed; owner backlog H4)
+- A world holding a block this version does not know (from a newer build) now opens: the block shows as a plain "Mystery Block" that cannot be broken, replaced or blown up, and the save keeps its real id. The Mystery Block itself can never be placed or saved. (Approver, 20 Nov, changed; owner request R2)
+- Tests: new `tests/w4.js` (25 checks for the items above) and two new checks in `tests/rollback.js` (unknown block load and re-save, twice).
 
 ## 17 Nov 2026: build 2026.11-w3
 
